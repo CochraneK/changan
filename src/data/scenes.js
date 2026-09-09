@@ -63,9 +63,105 @@ export const scenes = {
 
 窗外的更鼓响了一声。子时已过。`,
     choices: [
-      { t: '「给我人，给我权。我要在长安横着走。」', to: 'h_chou', flag: 'demand_power', trust: { libi: -8 }, clue: '张小敬要全权' },
-      { t: '「我一个人就够了。人多反而坏事。」', to: 'h_chou', flag: 'lone_wolf', trust: { libi: +12 }, clue: '张小敬独行' },
-      { t: '「先放我回坊里。我要见一个人。」', to: 'h_chou', flag: 'see_wenran', clue: '张小敬要见闻染' },
+      { t: '「给我人，给我权。我要在长安横着走。」', to: 'h_zi2_gela', flag: 'demand_power', trust: { libi: -8 }, clue: '张小敬要全权' },
+      { t: '「我一个人就够了。人多反而坏事。」', to: 'h_zi2_gela', flag: 'lone_wolf', trust: { libi: +12 }, clue: '张小敬独行' },
+      { t: '「先放我回坊里。我要见一个人。」', to: 'h_zi2_gela', flag: 'see_wenran', clue: '张小敬要见闻染' },
+    ],
+  },
+
+  // ==================== 子时（附加）· 葛老 · 地下城 ====================
+  h_zi2_gela: {
+    id: 'h_zi2_gela', hour: 'zi', place: '平康坊 · 地下暗市',
+    pov: 'zhangxiaojing',
+    text: `你出了靖安司，没有直接去查案。
+
+你绕进了一条暗巷——平康坊的地下暗市。
+
+这里的味道你熟悉：劣酒、胭脂、铁锈和血腥混在一起。长安最脏的钱和最真的消息，都在这里过手。
+
+葛老——平康坊的地下主人——坐在一堆绢帛中间，正在喝茶。他的茶具是越窑的青瓷，和他的身份极不相称。旁边跪着一个人，手脚被捆，额头抵着地，不敢抬起来。
+
+「张帅。」葛老没抬头，只是用茶盖拨了拨浮沫，「你如今值几个钱？我猜一个胡饼。」
+
+他笑了。跪着的人也发抖了。
+
+「你要的人，我知道在哪。」葛老终于看你一眼，「但我不白给。」`,
+    choices: [
+      { t: '「你消息灵通，就该知道我现在替谁做事。」——亮靖安司腰牌。', to: 'h_chou', flag: 'gela_power', clue: '葛老掌握狼卫线索' },
+      { t: '坐下，给自己倒一杯茶。不急。', to: 'h_chou', flag: 'gela_patient', trust: { gela: +15 }, clue: '葛老愿谈条件' },
+      { t: '先看那个跪着的人——他为什么在发抖。', to: 'h_chou', flag: 'gela_observe', clue: '暗市叛徒与狼卫有关' },
+    ],
+  },
+
+  // ==================== 卯时（附加）· 胡饼摊 ====================
+  h_mao_snack: {
+    id: 'h_mao_snack', hour: 'mao', place: '西市 · 胡饼摊前',
+    pov: 'zhangxiaojing',
+    text: `你跑了一上午，胃里翻江倒海。
+
+路过西市口，那个老胡人的胡饼摊还在。他看见你，愣了一下，然后脸上绽开了一个笑——那笑里有惊喜，有心疼，还有一些你说不上来的东西。
+
+「张帅！」他不由分说塞给你一张刚出炉的饼，「吃。你瘦了。」
+
+你咬了一口。烫得龇牙咧嘴。但那个味道——羊油的香、芝麻的脆、面饼的韧——让你忽然觉得，你好像真的活过来了。
+
+旁边坐着一个瞎眼的老者，哼着凉州小调。调子苍凉，像从很远很远的地方飘过来的。
+
+你嚼着饼，长安的天光正一点一点亮起来。`,
+    choices: [
+      { t: '慢慢嚼——面香、羊油、天光时辰，都在这一口里。', to: 'h_chen', flag: 'savor_bing', clue: '西市老胡人关心张小敬' },
+      { t: '边吃边想：龙波究竟为什么要用阙勒霍多？', to: 'h_chen', flag: 'ponder_longbo', clue: '思索龙波动机' },
+      { t: '掰了一半饼递给瞎眼老者：「老人家，吃一口。」', to: 'h_chen', flag: 'share_bing', trust: { baixing: +10 }, clue: '西市老者知道暗语' },
+    ],
+  },
+
+  // ==================== 未时（附加）· 望楼独白 ====================
+  h_wei_roof: {
+    id: 'h_wei_roof', hour: 'wei', place: '长安 · 望楼顶',
+    pov: 'zhangxiaojing',
+    text: `你甩开追兵，爬上了一座望楼。
+
+长安城在脚下铺开——一百零八坊，整整齐齐，像一张摊开的棋盘。远处，修政坊的灯楼已经搭起了骨架，像一只还没睁开眼睛的巨兽。
+
+暮色正从东边涌过来，把坊墙的影子拉得很长很长。
+
+风很大。没有人追你，你也不用追任何人。
+
+就这一刻，你是自由的。
+
+你在心里数着时辰。还剩六个时辰。六个时辰之后，要么长安没了，要么你没了。
+
+你忽然笑了一下。死牢里你想过很多种死法，没想到最后会是这样——站在最高的地方，看着这座你骂了一辈子、也守了一辈子的城。`,
+    choices: [
+      { t: '闭上眼睛，感受风从耳边穿过。', to: 'h_shen', flag: 'feel_wind', clue: '望楼独处一刻' },
+      { t: '在心里排接下来的每一步——灯楼、龙波、阙勒霍多。', to: 'h_shen', flag: 'plan_steps', clue: '制定灯楼行动方案' },
+      { t: '想起以前跟第十团兄弟在城西喝酒的日子。', to: 'h_shen', flag: 'recall_brothers', clue: '回忆第十团旧事' },
+    ],
+  },
+
+  // ==================== 酉时（附加）· 徐宾邀约 ====================
+  h_you_xubin: {
+    id: 'h_you_xubin', hour: 'you', place: '靖安司 · 门槛',
+    pov: 'zhangxiaojing',
+    text: `夜半。
+
+你回到靖安司。所有人都散了，只有一盏孤灯还亮着。
+
+徐宾坐在门槛上，旁边放着一壶酒和两个碗。他没看你，只是拍了拍身边的青石。
+
+「张帅，来。喝一口。」
+
+你坐下来。酒是凉的，但你不在乎。
+
+徐宾喝完半壶才开口。他说话的时候不看你，看着天上的月亮。
+
+「张帅，你说——这长安要是能从头来一遍，你最想改什么？」
+
+月光照在他瘦削的脸上。这个平时只跟数字打交道的男人，酒后问了一个没有数字可以回答的问题。`,
+    choices: [
+      { t: '「不改。改了就不是我了。」', to: 'h_xu', flag: 'no_regrets', trust: { xuhezi: +10 }, clue: '张小敬无悔' },
+      { t: '「改的事太多了……三年前那批军械。」', to: 'h_xu', flag: 'regret_arms', trust: { xuhezi: +15 }, clue: '军械旧案未了' },
+      { t: '「你喝多了。」——沉默，陪他坐一会。', to: 'h_xu', flag: 'silent_drink', trust: { xuhezi: +20 }, clue: '徐宾的深夜感慨' },
     ],
   },
 
@@ -181,8 +277,8 @@ export const scenes = {
 
 他咬碎了什么东西，当场气绝。`,
     choices: [
-      { t: '搜他的身，找更多线索。', to: 'h_chen', flag: 'searched_body', clue: '死者口中有残毒' },
-      { t: '立刻回报靖安司。', to: 'h_chen', flag: 'reported', clue: '确认阙勒霍多入城' },
+      { t: '搜他的身，找更多线索。', to: 'h_mao_snack', flag: 'searched_body', clue: '死者口中有残毒' },
+      { t: '立刻回报靖安司。', to: 'h_mao_snack', flag: 'reported', clue: '确认阙勒霍多入城' },
     ],
   },
 
@@ -199,9 +295,9 @@ export const scenes = {
 
 十七罐阙勒霍多，能烧掉半个长安。`,
     choices: [
-      { t: '摸进去，先毁掉这些油罐。', to: 'h_chen', flag: 'try_destroy', trust: { libi: +5 }, clue: '货栈藏油罐十七只' },
-      { t: '记住位置，回去搬援兵。', to: 'h_chen', flag: 'went_for_help', clue: '货栈位置已记下' },
-      { t: '守在这里，等他们的人出现。', to: 'h_chen', flag: 'staked_out', clue: '货栈有人接应' },
+      { t: '摸进去，先毁掉这些油罐。', to: 'h_mao_snack', flag: 'try_destroy', trust: { libi: +5 }, clue: '货栈藏油罐十七只' },
+      { t: '记住位置，回去搬援兵。', to: 'h_mao_snack', flag: 'went_for_help', clue: '货栈位置已记下' },
+      { t: '守在这里，等他们的人出现。', to: 'h_mao_snack', flag: 'staked_out', clue: '货栈有人接应' },
     ],
   },
 
@@ -222,8 +318,8 @@ export const scenes = {
 
 你心头一沉。修政坊，那是长安的中心。上元灯会的主场。`,
     choices: [
-      { t: '重谢老胡人，立刻赶往修政坊。', to: 'h_chen', flag: 'to_xiuzheng', clue: '狼卫目标：修政坊' },
-      { t: '让他继续盯着，有消息报靖安司。', to: 'h_chen', flag: 'left_watch', clue: '已在西市布眼线' },
+      { t: '重谢老胡人，立刻赶往修政坊。', to: 'h_mao_snack', flag: 'to_xiuzheng', clue: '狼卫目标：修政坊' },
+      { t: '让他继续盯着，有消息报靖安司。', to: 'h_mao_snack', flag: 'left_watch', clue: '已在西市布眼线' },
     ],
   },
 
@@ -354,9 +450,9 @@ export const scenes = {
 
 领头的，是元载。`,
     choices: [
-      { t: '「护着司丞，杀出去。」', to: 'h_shen', flag: 'breakout', trust: { libi: +15 }, clue: '靖安司被围' },
-      { t: '「我去引开他们，司丞从后门走。」', to: 'h_shen', flag: 'decoy', trust: { libi: +20 }, clue: '张小敬断后' },
-      { t: '「不急。先看看是谁下的令。」', to: 'h_shen', flag: 'observe', trust: { libi: -5 }, clue: '围靖安司者：元载' },
+      { t: '「护着司丞，杀出去。」', to: 'h_wei_roof', flag: 'breakout', trust: { libi: +15 }, clue: '靖安司被围' },
+      { t: '「我去引开他们，司丞从后门走。」', to: 'h_wei_roof', flag: 'decoy', trust: { libi: +20 }, clue: '张小敬断后' },
+      { t: '「不急。先看看是谁下的令。」', to: 'h_wei_roof', flag: 'observe', trust: { libi: -5 }, clue: '围靖安司者：元载' },
     ],
   },
 
@@ -418,9 +514,9 @@ export const scenes = {
 
 「是这座长安城本身。」`,
     choices: [
-      { t: '「少卖关子。龙波在哪？」', to: 'h_xu', flag: 'ask_longbo', clue: '鱼肠知道龙波位置' },
-      { t: '坐下，喝她那杯茶，听她说完。', to: 'h_xu', flag: 'listen_yuchang', trust: { yuzhen: +25 }, clue: '鱼肠的暗示' },
-      { t: '直接动手，先把她拿下。', to: 'h_xu', flag: 'attack_yuchang', trust: { yuzhen: -40 }, clue: '与鱼肠交手' },
+      { t: '「少卖关子。龙波在哪？」', to: 'h_you_xubin', flag: 'ask_longbo', clue: '鱼肠知道龙波位置' },
+      { t: '坐下，喝她那杯茶，听她说完。', to: 'h_you_xubin', flag: 'listen_yuchang', trust: { yuzhen: +25 }, clue: '鱼肠的暗示' },
+      { t: '直接动手，先把她拿下。', to: 'h_you_xubin', flag: 'attack_yuchang', trust: { yuzhen: -40 }, clue: '与鱼肠交手' },
     ],
   },
 
