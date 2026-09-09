@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>长安十二时辰 · 全结局与图鉴</title>
+  <script src="https://code.iconify.design/iconify-icon/2.1.0/iconify-icon.min.js"></script>
+  <style>
+    :root {
+      --bg: #14100e;
+      --bg2: #1d1712;
+      --panel: #221b15;
+      --panel2: #2b2219;
+      --line: #4a3a28;
+      --text: #e8dcc8;
+      --muted: #9a8a72;
+      --accent: #d4a24c;
+      --accent2: #b8452f;
+      --danger: #c0392b;
+      --ok: #6b8e5a;
+      --gold: #e0b657;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: "Songti SC", "STSong", "SimSun", "Noto Serif CJK SC", serif;
+      font-size: 15px;
+      line-height: 1.75;
+    }
+    .container { max-width: 1100px; margin: 0 auto; padding: 40px 24px 80px; }
+
+    /* Header */
+    .hero {
+      text-align: center;
+      border-bottom: 1px solid var(--line);
+      padding-bottom: 32px;
+      margin-bottom: 44px;
+    }
+    .hero iconify-icon { font-size: 40px; color: var(--accent); }
+    .hero h1 { font-size: 30px; color: var(--gold); letter-spacing: 4px; margin-top: 8px; }
+    .hero p { color: var(--muted); font-size: 13px; margin-top: 6px; letter-spacing: 2px; }
+    .hero .nav-links { margin-top: 16px; display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; }
+    .hero .nav-links a {
+      color: var(--accent);
+      text-decoration: none;
+      border: 1px solid var(--line);
+      padding: 6px 16px;
+      border-radius: 3px;
+      font-size: 13px;
+      transition: all .16s;
+    }
+    .hero .nav-links a:hover { background: var(--panel2); border-color: var(--accent); }
+
+    /* Section title */
+    .section-title {
+      font-size: 18px;
+      color: var(--gold);
+      letter-spacing: 3px;
+      border-left: 3px solid var(--accent);
+      padding-left: 14px;
+      margin-bottom: 22px;
+      margin-top: 44px;
+    }
+    .section-title small {
+      font-size: 11px;
+      color: var(--muted);
+      letter-spacing: 1px;
+      font-weight: normal;
+    }
+
+    /* ===== 结局 ===== */
+    .endings-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 18px; }
+    .ending-card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 4px;
+      padding: 24px 20px;
+      transition: all .2s;
+    }
+    .ending-card:hover { border-color: var(--accent); }
+    .ending-card .tag {
+      display: inline-block;
+      font-size: 11px;
+      padding: 2px 10px;
+      border: 1px solid var(--accent);
+      color: var(--accent);
+      border-radius: 2px;
+      letter-spacing: 2px;
+      margin-bottom: 12px;
+    }
+    .ending-card h3 { color: var(--gold); font-size: 17px; margin-bottom: 10px; }
+    .ending-card p { font-size: 13px; color: var(--text); line-height: 1.85; }
+    .ending-card .tagline {
+      margin-top: 12px;
+      padding-top: 10px;
+      border-top: 1px dashed var(--line);
+      font-style: italic;
+      color: var(--accent);
+      font-size: 13px;
+      text-align: center;
+    }
+
+    /* ===== MBTI 网格 ===== */
+    .mbti-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 16px; }
+
+    .mbti-card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 4px;
+      padding: 18px 16px;
+      transition: all .2s;
+      cursor: default;
+      position: relative;
+    }
+    .mbti-card:hover { border-color: var(--accent); transform: translateY(-2px); }
+
+    .mbti-card .mbti-code {
+      font-size: 24px;
+      font-weight: bold;
+      color: var(--gold);
+      letter-spacing: 3px;
+      line-height: 1.2;
+      text-shadow: 0 0 12px rgba(224, 182, 87, .2);
+    }
+    .mbti-card .mbti-name {
+      font-size: 12px;
+      color: var(--muted);
+      letter-spacing: 1px;
+      margin-top: 2px;
+    }
+    .mbti-card .mbti-title {
+      font-size: 13px;
+      color: var(--accent);
+      font-style: italic;
+      margin-top: 4px;
+    }
+    .mbti-card .mbti-desc {
+      font-size: 12px;
+      color: var(--text);
+      line-height: 1.75;
+      margin-top: 10px;
+      padding-top: 10px;
+      border-top: 1px dashed var(--line);
+    }
+
+    .mbti-card .char {
+      margin-top: 12px;
+      padding: 10px 12px;
+      background: var(--panel2);
+      border: 1px solid var(--line);
+      border-radius: 3px;
+      text-align: center;
+    }
+    .mbti-card .char-name {
+      font-size: 15px;
+      color: var(--gold);
+      font-weight: bold;
+    }
+    .mbti-card .char-alias {
+      font-size: 11px;
+      color: var(--accent);
+      margin-top: 1px;
+    }
+    .mbti-card .char-side {
+      display: inline-block;
+      font-size: 10px;
+      padding: 1px 8px;
+      border: 1px solid var(--line);
+      border-radius: 2px;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+    .mbti-card .char-bio {
+      font-size: 12px;
+      color: var(--text);
+      line-height: 1.7;
+      margin-top: 8px;
+      text-align: left;
+    }
+    .mbti-card .char-words {
+      font-size: 12px;
+      color: var(--gold);
+      font-style: italic;
+      margin-top: 6px;
+    }
+
+    /* Dimensional badges */
+    .dim-badges {
+      display: flex;
+      gap: 4px;
+      margin-top: 8px;
+      flex-wrap: wrap;
+    }
+    .dim-badge {
+      font-size: 10px;
+      padding: 1px 7px;
+      border-radius: 2px;
+      border: 1px solid var(--line);
+    }
+    .dim-badge.E { color: #d48c4c; border-color: #d48c4c; }
+    .dim-badge.I { color: #6b9e8a; border-color: #6b9e8a; }
+    .dim-badge.S { color: #d4a24c; border-color: #d4a24c; }
+    .dim-badge.N { color: #9a72c0; border-color: #9a72c0; }
+    .dim-badge.T { color: #c0392b; border-color: #c0392b; }
+    .dim-badge.F { color: #e8886a; border-color: #e8886a; }
+    .dim-badge.J { color: #5a8e8a; border-color: #5a8e8a; }
+    .dim-badge.P { color: #b8a060; border-color: #b8a060; }
+
+    /* ===== 人物一览 ===== */
+    .char-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
+    .char-card-full {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 4px;
+      padding: 20px;
+      transition: all .2s;
+    }
+    .char-card-full:hover { border-color: var(--accent); }
+    .char-card-full .head {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 8px;
+    }
+    .char-card-full .head .name { font-size: 18px; color: var(--gold); font-weight: bold; }
+    .char-card-full .head .alias { font-size: 11px; color: var(--accent); }
+    .char-card-full .head .side {
+      font-size: 10px;
+      padding: 2px 8px;
+      border: 1px solid var(--line);
+      border-radius: 2px;
+      color: var(--muted);
+    }
+    .char-card-full .bio {
+      font-size: 13px;
+      line-height: 1.8;
+      color: var(--text);
+      margin-top: 8px;
+    }
+    .char-card-full .words {
+      font-size: 13px;
+      color: var(--gold);
+      font-style: italic;
+      margin-top: 8px;
+      padding-top: 8px;
+      border-top: 1px dashed var(--line);
+    }
+    .char-card-full .mbti-tag {
+      display: inline-block;
+      font-size: 11px;
+      padding: 1px 8px;
+      background: var(--panel2);
+      border: 1px solid var(--accent);
+      border-radius: 2px;
+      color: var(--accent);
+      letter-spacing: 1px;
+      margin-top: 8px;
+    }
+
+    /* TOC */
+    .toc {
+      background: var(--panel2);
+      border: 1px solid var(--line);
+      border-radius: 4px;
+      padding: 18px 22px;
+      margin-bottom: 32px;
+    }
+    .toc-title {
+      font-size: 12px;
+      color: var(--muted);
+      letter-spacing: 2px;
+      margin-bottom: 10px;
+    }
+    .toc a {
+      color: var(--accent);
+      text-decoration: none;
+      font-size: 13px;
+      display: inline-block;
+      margin-right: 18px;
+      margin-bottom: 6px;
+    }
+    .toc a:hover { text-decoration: underline; }
+
+    .filter-bar {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 18px;
+      flex-wrap: wrap;
+    }
+    .filter-btn {
+      padding: 4px 14px;
+      border: 1px solid var(--line);
+      background: var(--panel);
+      color: var(--muted);
+      font-family: inherit;
+      font-size: 12px;
+      border-radius: 2px;
+      cursor: pointer;
+      transition: all .16s;
+    }
+    .filter-btn:hover { border-color: var(--accent); color: var(--text); }
+    .filter-btn.active { background: var(--accent); color: #1a1208; border-color: var(--gold); font-weight: bold; }
+
+    .empty-state {
+      text-align: center;
+      padding: 40px;
+      color: var(--muted);
+      font-style: italic;
+    }
+
+    footer {
+      text-align: center;
+      padding: 32px 0 16px;
+      border-top: 1px solid var(--line);
+      margin-top: 48px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+
+  <!-- Hero -->
+  <div class="hero">
+    <iconify-icon icon="game-icons:lantern-flame"></iconify-icon>
+    <h1>长安十二时辰 · 全结局与图鉴</h1>
+    <p>十六型人格 · 三位归宿 · 满城人物</p>
+    <div class="nav-links">
+      <a href="./">← 返回游戏</a>
+      <a href="#endings">结局一览</a>
+      <a href="#mbti">MBTI 图鉴</a>
+      <a href="#characters">人物名册</a>
+    </div>
+  </div>
+
+  <!-- TOC -->
+  <div class="toc">
+    <div class="toc-title">📜 本章目次</div>
+    <a href="#endings">壹 · 三种结局</a>
+    <a href="#mbti">贰 · 十六型人格与人物</a>
+    <a href="#characters">叁 · 长安人物名册</a>
+  </div>
+
+  <!-- ============ 结局 ============ -->
+  <div class="section-title" id="endings">壹 · 三种结局 <small>— 你的选择决定长安的命运</small></div>
+  <div class="endings-grid" id="endingsGrid"></div>
+
+  <!-- ============ MBTI ============ -->
+  <div class="section-title" id="mbti">贰 · 十六型人格与人物 <small>— 每一种人格，对应一个长安角色</small></div>
+  <div class="filter-bar" id="mbtiFilter">
+    <button class="filter-btn active" data-filter="all">全部 (16)</button>
+    <button class="filter-btn" data-filter="NT">NT 理性者</button>
+    <button class="filter-btn" data-filter="NF">NF 理想主义者</button>
+    <button class="filter-btn" data-filter="SJ">SJ 守护者</button>
+    <button class="filter-btn" data-filter="SP">SP 技艺者</button>
+  </div>
+  <div class="mbti-grid" id="mbtiGrid"></div>
+
+  <!-- ============ 人物 ============ -->
+  <div class="section-title" id="characters">叁 · 长安人物名册 <small>— 谁在守护这座城</small></div>
+  <div class="char-grid" id="charGrid"></div>
+
+  <footer>
+    <iconify-icon icon="game-icons:lantern-flame"></iconify-icon>
+    <span style="margin-left:6px">长安十二时辰 · 灯火如昼 · MBTI 互动游戏</span>
+  </footer>
+</div>
+
+<script type="module">
+import { characters, hours } from './src/data/characters.js';
+import { MBTI_TYPES, MBTI_DIMS, CHARACTER_MBTI } from './src/data/mbti.js';
+import { scenes } from './src/data/scenes.js';
+
+// ===== 结局数据 =====
+const endings = [
+  { id: 'e_final_fight',   tag: '结局 · 血色长安', title: '血色长安', tagline: '你用刀守住了长安。代价是你自己。' },
+  { id: 'e_final_people',  tag: '结局 · 灯火如昼', title: '灯火如昼', tagline: '你守住的不是一座城，是城里的人。' },
+  { id: 'e_final_persuade',tag: '结局 · 未竟之局', title: '未竟之局', tagline: '你阻止了火，却没能阻止长安慢慢烂掉。' },
+];
+
+const endingTexts = {
+  e_final_fight: `你拔刀了。那一战，后来被说书人讲了许多年。龙波死了，十七桶阙勒霍多在最后一刻被推下灯楼。你可活了下了。天亮的时候，你一个人坐在靖安司的门槛上，看着长安城慢慢醒来。后来圣人下旨，赦你死罪。你没留在长安——你出了城，往西去了。可每年上元，总有说在灯影里看见过一个瘸腿的汉子，站了很久很久。`,
+  e_final_people: `「我不为长安死，我为这些人活。」龙波愣住了。他笑了很久，把火折子扔在地上，一脚踩灭：「我输给的不是你，是你们。」龙波被押进刑部大牢。上元灯会照常举行。三十丈的灯楼亮起来的时候，整座长安都在欢呼。你站在人群里，抬头看那盏最大的灯。你终于信了——长安不用你守。`,
+  e_final_persuade: `「收手吧。我替你把仇报了。」火折子落在地上，灭了。龙波被拿下时说：「那三年前的账，你自己去查。你会查到自己不想查的东西。」三个月后，你查到了那批军械的最终流向——指向了朝堂上一个你惹不起的名字。案卷被压了下来。上元节的灯又亮了。你没去看灯。你去西市买了一块胡饼，吃了很久。`,
+};
+
+// ===== 维度分组 =====
+function temperament(type) {
+  if (type.startsWith('E') || type.startsWith('I')) {
+    const s = type[1];
+    const t = type[2];
+    const j = type[3];
+    if (s === 'N' && (t === 'T')) return 'NT';
+    if (s === 'N' && (t === 'F')) return 'NF';
+    if (s === 'S' && (j === 'J')) return 'SJ';
+    if (s === 'S' && (j === 'P')) return 'SP';
+  }
+  return 'other';
+}
+
+function dimLabel(key, letter) {
+  const map = { E:'外向', I:'内向', S:'实感', N:'直觉', T:'思考', F:'情感', J:'判断', P:'知觉' };
+  return map[letter] || letter;
+}
+
+// ===== 渲染结局 =====
+const endingsGrid = document.getElementById('endingsGrid');
+endings.forEach(e => {
+  const card = document.createElement('div');
+  card.className = 'ending-card';
+  card.innerHTML = `
+    <div class="tag">${e.tag}</div>
+    <h3>${e.title}</h3>
+    <p>${endingTexts[e.id]}</p>
+    <div class="tagline">${e.tagline}</div>
+  `;
+  endingsGrid.appendChild(card);
+});
+
+// ===== 渲染 MBTI =====
+const mbtiGrid = document.getElementById('mbtiGrid');
+const filterBtns = document.querySelectorAll('[data-filter]');
+
+function renderMBTI(filter = 'all') {
+  mbtiGrid.innerHTML = '';
+  const entries = Object.entries(MBTI_TYPES);
+  const filtered = filter === 'all' ? entries : entries.filter(([type]) => temperament(type) === filter);
+
+  if (filtered.length === 0) {
+    mbtiGrid.innerHTML = '<div class="empty-state">该气质类型下暂无角色。</div>';
+    return;
+  }
+
+  filtered.forEach(([type, info]) => {
+    const char = characters[info.who];
+    if (!char) return;
+    const vec = CHARACTER_MBTI[info.who] || {};
+    const dims = Object.entries(vec)
+      .filter(([, v]) => v !== 0)
+      .sort((a, b) => Math.abs(b[1]) - Math.abs(a[1]))
+      .slice(0, 3)
+      .map(([k, v]) => {
+        const letter = v > 0 ? k[0] : k[1];
+        const cls = letter;
+        return `<span class="dim-badge ${cls}">${letter} ${dimLabel(letter)}</span>`;
+      }).join('');
+
+    const card = document.createElement('div');
+    card.className = 'mbti-card';
+    card.dataset.temp = temperament(type);
+    card.innerHTML = `
+      <div class="mbti-code">${type}</div>
+      <div class="mbti-name">${info.name}</div>
+      <div class="mbti-title">${info.title}</div>
+      <div class="dim-badges">${dims}</div>
+      <div class="mbti-desc">${info.desc}</div>
+      <div class="char">
+        <div class="char-name">${char.name}</div>
+        <div class="char-alias">${char.alias}</div>
+        <div class="char-side">${char.side}</div>
+        <div class="char-bio">${char.bio}</div>
+        <div class="char-words">「${char.words}」</div>
+      </div>
+    `;
+    mbtiGrid.appendChild(card);
+  });
+}
+
+filterBtns.forEach(btn => {
+  btn.addEventListener('click', () => {
+    filterBtns.forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    renderMBTI(btn.dataset.filter);
+  });
+});
+
+renderMBTI();
+
+// ===== 渲染人物 =====
+const charGrid = document.getElementById('charGrid');
+
+// Build char-to-MBTI map
+const charToMBTI = {};
+for (const [type, info] of Object.entries(MBTI_TYPES)) {
+  charToMBTI[info.who] = type;
+}
+
+Object.entries(characters)
+  .sort((a, b) => {
+    // POV first
+    const aPov = a[1].isPOV ? 0 : 1;
+    const bPov = b[1].isPOV ? 0 : 1;
+    return aPov - bPov;
+  })
+  .forEach(([id, char]) => {
+    const mbti = charToMBTI[id];
+    const card = document.createElement('div');
+    card.className = 'char-card-full';
+    card.innerHTML = `
+      <div class="head">
+        <div>
+          <div class="name">${char.name}</div>
+          <div class="alias">${char.alias}</div>
+        </div>
+        <div class="side">${char.side}</div>
+      </div>
+      ${mbti ? `<div class="mbti-tag">${mbti} · ${MBTI_TYPES[mbti]?.name || ''}</div>` : ''}
+      <div class="bio">${char.bio}</div>
+      <div class="words">「${char.words}」</div>
+    `;
+    charGrid.appendChild(card);
+  });
+
+</script>
+</body>
+</html>

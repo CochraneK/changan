@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>长安十二时辰 · 灯火如昼</title>
+  <script src="https://code.iconify.design/iconify-icon/2.1.0/iconify-icon.min.js"></script>
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <div id="app">
+    <!-- 顶栏：时辰刻度 -->
+    <header id="topBar">
+      <div class="brand">
+        <iconify-icon icon="game-icons:lantern-flame"></iconify-icon>
+        <span class="brand-title">长安十二时辰</span>
+        <span class="brand-sub">灯火如昼 · 元月十四</span>
+      </div>
+      <div id="clockStrip"></div>
+    </header>
+
+    <!-- 中央剧情舞台 -->
+    <main id="scene" class="scene"></main>
+
+    <!-- 侧栏 -->
+    <aside id="sidePanel">
+      <!-- 当前视角 -->
+      <section class="panel-section">
+        <div class="panel-title"><iconify-icon icon="game-icons:person"></iconify-icon> 当前视角</div>
+        <div id="view" class="view-box"></div>
+      </section>
+
+      <!-- 时辰 / 状态 -->
+      <section class="panel-section">
+        <div class="panel-title"><iconify-icon icon="game-icons:hourglass"></iconify-icon> 进度</div>
+        <div class="stat-row"><span>当前时辰</span><span id="momentLabel">卯时 · 寅正</span></div>
+        <div class="stat-row"><span>已过时辰</span><span id="hourCount">0 / 12</span></div>
+        <div class="stat-row"><span>关键抉择</span><span id="choiceCount">0</span></div>
+      </section>
+
+      <!-- 线索袋 -->
+      <section class="panel-section">
+        <div class="panel-title"><iconify-icon icon="game-icons:scroll-unfurled"></iconify-icon> 线索袋</div>
+        <div id="clueList" class="list"></div>
+      </section>
+
+      <!-- 队伍 / 关系 -->
+      <section class="panel-section">
+        <div class="panel-title"><iconify-icon icon="game-icons:grouped-drops"></iconify-icon> 同路人</div>
+        <div id="partyList" class="list"></div>
+      </section>
+
+      <!-- 大事记 -->
+      <section class="panel-section">
+        <div class="panel-title"><iconify-icon icon="game-icons:scroll-quill"></iconify-icon> 大事记</div>
+        <div id="chronicleList" class="list"></div>
+      </section>
+    </aside>
+  </div>
+
+  <!-- 结局 / 重置浮层 -->
+  <div id="overlay" class="overlay hidden">
+    <div class="overlay-modal">
+      <h2 id="overlayTitle"></h2>
+      <div id="overlayBody"></div>
+      <button class="btn primary block" id="overlayAction"></button>
+    </div>
+  </div>
+
+  <script type="module" src="./src/main.js"></script>
+</body>
+</html>
