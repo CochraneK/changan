@@ -12,6 +12,13 @@
   --danger: #c0392b;
   --ok: #6b8e5a;
   --gold: #e0b657;
+
+  /* 字体：正文用宋体系（唐代战报感），界面小字用无衬线（小字号下更清晰）。
+     栈里把跨平台容易拿到的字体排在前面，避免 Windows 落到宋体后在 11-12px 下发虚。 */
+  --font-serif: "Noto Serif CJK SC", "Source Han Serif SC", "Songti SC", "STSong",
+    "SimSun", "Microsoft YaHei", serif;
+  --font-ui: "Microsoft YaHei UI", "Microsoft YaHei", "PingFang SC", "Hiragino Sans GB",
+    "Noto Sans CJK SC", system-ui, -apple-system, "Segoe UI", sans-serif;
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -19,7 +26,7 @@
 body {
   background: var(--bg);
   color: var(--text);
-  font-family: "Songti SC", "STSong", "SimSun", "Noto Serif CJK SC", serif;
+  font-family: var(--font-serif);
   font-size: 15px;
   line-height: 1.75;
   height: 100vh;
@@ -51,12 +58,16 @@ body {
 .brand-sub { font-size: 11px; color: var(--muted); letter-spacing: 1px; }
 
 /* 顶栏导航链接 */
+/* 顶栏导航链接 / 按钮（同一个类同时用在一等 a 与 button 上，所以要清掉按钮默认样式） */
 .nav-link {
   display: flex;
   align-items: center;
   gap: 5px;
   color: var(--accent);
   text-decoration: none;
+  background: transparent;
+  cursor: pointer;
+  font-family: var(--font-ui);
   font-size: 12px;
   letter-spacing: 1px;
   padding: 5px 12px;
@@ -169,6 +180,31 @@ body {
 .choice-btn .tag.good { color: var(--ok); border-color: var(--ok); }
 .choice-btn .tag.risk { color: var(--danger); border-color: var(--danger); }
 
+/* 过场场景的「继续」按钮（节点只有 next、没有 choices）——
+   刻意做得比抉择按钮轻：它不是一次选择，只是一页翻过去。 */
+.choices.passage { margin-top: 30px; }
+.choice-btn.continue-btn {
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: transparent;
+  border-style: dashed;
+  color: var(--muted);
+  font-size: 13px;
+  letter-spacing: .04em;
+}
+.choice-btn.continue-btn:hover {
+  background: var(--panel2);
+  border-style: solid;
+  color: var(--accent);
+  transform: none;
+}
+.choice-btn.continue-btn .arrow {
+  color: var(--accent);
+  transition: transform .16s;
+}
+.choice-btn.continue-btn:hover .arrow { transform: translateX(4px); }
+
 /* 继续按钮 */
 .btn {
   padding: 9px 18px;
@@ -231,11 +267,23 @@ body {
 }
 .stat-row span:last-child { color: var(--text); }
 
+.resume-note {
+  margin-top: 8px;
+  padding: 6px 9px;
+  border: 1px dashed var(--accent);
+  border-radius: 2px;
+  font-size: 11px;
+  color: var(--gold);
+  line-height: 1.5;
+}
+
 .view-box { font-size: 13px; }
 .view-who { color: var(--gold); font-weight: bold; font-size: 15px; }
 .view-desc { font-size: 11px; color: var(--muted); line-height: 1.5; margin-top: 3px; }
 
 .list { font-size: 12px; display: flex; flex-direction: column; gap: 5px; }
+/* 线索会累积到 20 条左右，不限高会把「同路人」挤出可视区 —— 而结局正是按同路人判定的 */
+#clueList { max-height: 230px; overflow-y: auto; }
 .list-item {
   padding: 6px 9px;
   background: var(--panel);
@@ -545,8 +593,145 @@ body {
   font-style: italic;
 }
 
+/* ===== 界面小字统一用无衬线 ===== */
+/* 宋体在 11-12px 的界面元素上最容易发虚：正文保留宋体，chrome 换成无衬线。 */
+#topBar, #sidePanel, .choices, .choice-btn, .choice-locked, .btn,
+.mbti-wrap, .psy-wrap, .overlay-modal, .clock-cell {
+  font-family: var(--font-ui);
+}
+.act-title, .narration, .psy-match-bio, .mbti-match-bio { font-family: var(--font-serif); }
+
+.top-actions { display: flex; align-items: center; gap: 8px; }
+
+/* 图标 CDN 不可达时（离线 / 网络策略拦截），由 index.html 的 onerror 挂上 no-icons，
+   收掉图标占位，保证版式不出现空白块。图标全部是装饰性的，缺了不影响功能。 */
+.no-icons iconify-icon { display: none !important; }
+
+/* ===== 未解锁的选项 ===== */
+/* 条件不满足的路不该凭空消失，得让玩家看见"还有一条路没走到" */
+.choice-locked {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 14px;
+  border: 1px dashed var(--line);
+  border-radius: 3px;
+  background: rgba(0, 0, 0, .18);
+  color: var(--muted);
+  font-size: 12.5px;
+  line-height: 1.6;
+}
+.choice-locked .lock-mark {
+  flex-shrink: 0;
+  font-size: 10px;
+  padding: 1px 6px;
+  border: 1px solid var(--line);
+  border-radius: 2px;
+  letter-spacing: 1px;
+}
+
+/* ===== 侧栏：同路人 ===== */
+.ally-count {
+  font-size: 11px;
+  color: var(--muted);
+  padding: 4px 2px 6px;
+  border-bottom: 1px dashed var(--line);
+  margin-bottom: 6px;
+}
+.ally-count strong { color: var(--gold); font-size: 13px; }
+.list-item.ally { border-left-color: var(--gold); }
+.ally-badge {
+  font-size: 9px;
+  padding: 1px 5px;
+  margin-left: 4px;
+  border: 1px solid var(--gold);
+  border-radius: 2px;
+  color: var(--gold);
+  white-space: nowrap;
+}
+.panel-foot {
+  margin-top: 14px;
+  padding-top: 10px;
+  border-top: 1px solid var(--line);
+  font-size: 11px;
+  color: var(--muted);
+  text-align: center;
+}
+
+/* ===== MBTI：题号 / 无偏好 ===== */
+.mbti-q {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.mbti-side.left, .mbti-side.right { width: 118px; }
+.mbti-side iconify-icon { font-size: 14px; color: var(--muted); flex-shrink: 0; }
+.mbti-tie-tag, .mbti-items {
+  flex-shrink: 0;
+  font-size: 10px;
+  padding: 1px 6px;
+  border: 1px solid var(--line);
+  border-radius: 2px;
+  color: var(--muted);
+  letter-spacing: 1px;
+}
+.mbti-tie-tag { border-color: var(--danger); color: var(--danger); border-style: dashed; }
+.mbti-dim.tie .mbti-fill { background: var(--muted); }
+.mbti-tie-note {
+  margin-top: 14px;
+  padding: 10px 14px;
+  border: 1px dashed var(--line);
+  border-radius: 3px;
+  background: rgba(0, 0, 0, .18);
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.7;
+}
+.mbti-tie-note strong { color: var(--gold); }
+
+/* ===== 键盘可达性 ===== */
+:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+
+/* ===== 响应式 ===== */
 @media (max-width: 860px) {
-  #app { grid-template-columns: 1fr; grid-template-areas: "top" "scene"; }
-  #sidePanel { display: none; }
-  .scene { padding: 20px; }
+  #app {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto 1fr;
+    grid-template-areas: "top" "scene";
+  }
+  #topBar { flex-wrap: wrap; height: auto; padding: 8px 12px; gap: 10px; }
+  #topBar .brand-sub { display: none; }
+  #clockStrip { margin-left: 0; width: 100%; padding-bottom: 2px; }
+  .scene { padding: 20px 16px; }
+
+  /* 侧栏不再直接 display:none —— 那样线索袋 / 同路人 / 大事记在手机上会整体消失、
+     且没有任何替代入口。改成从右侧滑出的抽屉，由顶栏「状态」按钮开合。 */
+  #sidePanel {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: min(86vw, 340px);
+    z-index: 40;
+    display: block;
+    overflow-y: auto;
+    transform: translateX(101%);
+    transition: transform .22s ease;
+    box-shadow: -14px 0 34px rgba(0, 0, 0, .55);
+  }
+  #sidePanel.open { transform: translateX(0); }
+}
+
+@media (min-width: 861px) {
+  #panelToggle { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    transition-duration: .01ms !important;
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+  .choice-btn:hover { transform: none; }
 }

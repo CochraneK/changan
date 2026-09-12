@@ -1,0 +1,34 @@
+{
+  "name": "changan-lantern",
+  "version": "5.5.0",
+  "private": true,
+  "description": "长安十二时辰 · 灯火如昼 —— 浏览器单页剧情冒险 + MBTI 人格画像（零运行时依赖）",
+  "type": "module",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "start": "python -m http.server 8010",
+    "verify": "node tools/verify.mjs",
+    "check:readme": "node tools/check_readme.mjs",
+    "simulate": "node tools/simulate.mjs",
+    "audit": "node tools/psy_audit.mjs",
+    "audit:branch": "node tools/branch_audit.mjs",
+    "audit:passage": "node tools/passage_audit.mjs",
+    "trace": "node tools/trace_choices.mjs",
+    "trace:brief": "node tools/trace_choices.mjs --brief",
+    "dump": "python tools/dump_play.py",
+    "dump:endings": "python tools/dump_play.py endings",
+    "test": "node tools/verify.mjs && node tools/simulate.mjs",
+    "test:all": "node tools/verify.mjs && node tools/check_readme.mjs && node tools/simulate.mjs && node tools/branch_audit.mjs && node tools/passage_audit.mjs && node tools/continuity_audit.mjs && node tools/psy_audit.mjs",
+    "smoke": "python tools/smoke.py",
+    "smoke:psy": "python tools/smoke_psy.py",
+    "smoke:mbti": "python tools/smoke_mbti.py",
+    "smoke:text": "python tools/smoke_text.py",
+    "smoke:gate": "python tools/smoke_gate.py",
+    "smoke:results": "python tools/smoke_results.py",
+    "shot:passage": "python tools/shot_passage.py",
+    "dist": "python tools/mbti_dist.py",
+    "audit:continuity": "node tools/continuity_audit.mjs"
+  }
+}

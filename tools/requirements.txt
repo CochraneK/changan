@@ -1,0 +1,8 @@
+# 只给「浏览器冒烟测试」用；游戏本身零依赖，不装这些也能正常玩。
+#
+# 安装：
+#   pip install -r tools/requirements.txt
+#
+# 说明：本项目复用系统已安装的 Chrome / Edge（tools/_browser.py 会自动探测路径），
+#      所以不需要再执行 playwright install 去下载浏览器内核。
+playwright>=1.40

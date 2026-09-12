@@ -1,15 +1,18 @@
-from playwright.sync_api import sync_playwright
+# 浏览器路径 / 端口 / 依赖统一交给 tools/_browser.py 自动探测，不再写死
+from _browser import URL, launch, need_playwright, check_server, reset_storage, max_steps
 
-URL = "http://127.0.0.1:8010/index.html"
-CHROME = r"C:/Program Files/Google/Chrome/Application/chrome.exe"
+need_playwright()   # 缺依赖时给出可操作的提示，而不是 ImportError 堆栈
+check_server()      # 确认静态服务器已经起来（启动服务器是使用者的动作）
+
+from playwright.sync_api import sync_playwright  # noqa: E402 —— 故意放在依赖检查之后
 
 errors = []
 
 
 def playthrough(page, pick):
-    page.goto(URL, wait_until="networkidle")
+    reset_storage(page)   # 必须清存档，否则会直接恢复到上一局的结局页
     page.wait_for_timeout(900)
-    for _ in range(40):
+    for _ in range(max_steps(page)):
         try:
             if not page.locator("#overlay").evaluate("el => el.classList.contains('hidden')"):
                 break
@@ -46,11 +49,13 @@ def playthrough(page, pick):
         "who": t(".mbti-match-name"),
         "end": t(".end-tag"),
         "dims": dims,
+        # 无偏好维度数：新计分模型下 dev 恰为 0 时不硬判字母，UI 必须如实标出来
+        "ties": page.locator(".mbti-dim.tie").count(),
     }
 
 
 with sync_playwright() as p:
-    b = p.chromium.launch(executable_path=CHROME)
+    b = launch(p)
     page = b.new_page(viewport={"width": 1280, "height": 900})
     page.on("pageerror", lambda e: errors.append("PAGEERROR: " + str(e)))
     page.on("console", lambda m: errors.append("CONSOLE: " + m.text)
@@ -64,7 +69,7 @@ with sync_playwright() as p:
         print("  结局:", r["end"])
         print("  类型:", r["type"], "|", r["name"])
         print("  同型人物:", r["who"])
-        print("  四维:", "  ".join(r["dims"]))
+        print("  四维:", "  ".join(r["dims"]), f"| 无偏好维度 {r['ties']}")
         page.screenshot(path=f"tools/mbti_{strategy}.png", full_page=True)
         print("")
 

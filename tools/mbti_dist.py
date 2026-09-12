@@ -1,9 +1,14 @@
-from playwright.sync_api import sync_playwright
 from collections import Counter
 import random
 
-URL = "http://127.0.0.1:8010/index.html"
-CHROME = r"C:/Program Files/Google/Chrome/Application/chrome.exe"
+# 浏览器路径 / 端口 / 依赖统一交给 tools/_browser.py 自动探测，不再写死
+from _browser import URL, launch, need_playwright, check_server, reset_storage, max_steps
+
+need_playwright()   # 缺依赖时给出可操作的提示，而不是 ImportError 堆栈
+check_server()      # 确认静态服务器已经起来（启动服务器是使用者的动作）
+
+from playwright.sync_api import sync_playwright  # noqa: E402 —— 故意放在依赖检查之后
+
 N = 24
 random.seed(42)
 
@@ -13,14 +18,14 @@ types = Counter()
 dim_pcts = {k: [] for k in ["EI", "SN", "TF", "JP"]}
 
 with sync_playwright() as p:
-    b = p.chromium.launch(executable_path=CHROME)
+    b = launch(p)
     page = b.new_page(viewport={"width": 1280, "height": 900})
     page.on("pageerror", lambda e: errors.append("PAGEERROR: " + str(e)))
 
     for run in range(N):
-        page.goto(URL, wait_until="networkidle")
+        reset_storage(page)   # 必须清存档，否则 24 局全是第一局的结果
         page.wait_for_timeout(650)
-        for _ in range(40):
+        for _ in range(max_steps(page)):
             try:
                 if not page.locator("#overlay").evaluate("el => el.classList.contains('hidden')"):
                     break

@@ -28,7 +28,7 @@ export const MBTI_DIMS = [
     iconL: 'game-icons:scales', iconR: 'game-icons:two-hearts',
     question: '你如何做决定',
     leftDesc: '你按原则和结果下判断。必要的时候，你可以很冷。有些代价，必须有人付。',
-    rightDesc: '你按人情和 value 下判断。你做不到看着一个人去死，哪怕"道理"上该如此。',
+    rightDesc: '你按人情和价值下判断。你做不到看着一个人去死，哪怕「道理」上该如此。',
   },
   {
     key: 'JP', left: 'J', right: 'P',
@@ -39,8 +39,6 @@ export const MBTI_DIMS = [
     rightDesc: '你留余地、看情况、随机应变。路走不通就换一条，活人不能被规矩困死。',
   },
 ];
-
-export const MBTI_DIM_MAP = Object.fromEntries(MBTI_DIMS.map(d => [d.key, d]));
 
 // ===== 16 型定义：中文名 + 长安化称号 + 描述 + 对应长安人物 =====
 export const MBTI_TYPES = {
@@ -111,7 +109,7 @@ export const MBTI_TYPES = {
   },
   ISFP: {
     name: '探险家', title: '随性而行者',
-    desc: '你不愛被安排。你跟着感觉走，爱你所爱，恨你所恨，活得坦荡。',
+    desc: '你不爱被安排。你跟着感觉走，爱你所爱，恨你所恨，活得坦荡。',
     who: 'wenran',
   },
   ESTP: {
@@ -141,6 +139,7 @@ export const MBTI_CHOICE = {
     { EI: +2 },                        // 「说吧，要我做什么。」（纯 E：直接接任务）
     { TF: +2, EI: +1 },                // 「我要自由身。」——谈条件（主 T：谈判思维）
     { EI: -2, SN: -1 },                // 「我为什么要信你？」（主 I：保留判断）
+    { SN: +2, TF: +1 },                // 「我不是唯一的人选。」——追问实据（S+T：先算清自己的分量）
   ],
   s1_task: [
     { EI: +3, JP: +1 },                // 「给我人，给我权。」（主 E：要资源）
@@ -212,6 +211,7 @@ export const MBTI_CHOICE = {
     { TF: -3, EI: +2 },                // 「我信你。跟我干。」（主 F：信任/情感）
     { TF: +3 },                        // 「你签字时没想过查？」（纯 T：追问原则）
     { TF: -2, EI: +2 },                // 「把知道的都说出来。」（主 F：保护+协作）
+    { SN: +2, EI: +1 },                // 把文书摊开（条件选项：S 实感取证 + E 正面沟通）
   ],
   // ==================== 未时 · 靖安司之围 ====================
   h_wei: [
@@ -254,6 +254,7 @@ export const MBTI_CHOICE = {
     { JP: +3, TF: -2 },                // 「我愿意。」——拔刀一战（主 J：献身/决断）
     { EI: +2, TF: -3 },                // 「为这些人活。」（E+F：为他人/情感）
     { SN: -2, TF: -2, JP: -2 },        // 「收手吧，我替你报仇。」（N+F+P：共谋未来）
+    { TF: -3, EI: +1 },                // 「我懂你。」——共情劝降（F：以情感动，不靠算计）
   ],
 };
 
@@ -308,6 +309,8 @@ function zscore(vec, keys) {
 //   1) 主匹配 = 与你 MBTI 型相同的那位人物（16 型 ↔ 16 人物，一一对应）
 //   2) 契合度 = 你的四维强度与该人物向量的平均偏差（100 分制）
 //   3) 次席   = 用 z-score 比较"特质形状"找第二接近的人物，提供补充视角
+//      z 距离按理论最大值归一（4 维时每维最多差 2，故最大 d = 4），再线性映射到
+//      0-100，避免出现没有依据的经验系数。
 export function matchMBTICharacter(dims, type) {
   const keys = dims.map(d => d.key);
   const player = {};
@@ -316,70 +319,107 @@ export function matchMBTICharacter(dims, type) {
   const main = (MBTI_TYPES[type] && MBTI_TYPES[type].who) || null;
   const cv = (v) => keys.map(k => ((v[k] || 0) / 3) * 50);
 
-  // 契合度：平均绝对偏差越小越高
-  let similarity = 0;
-  if (main && CHARACTER_MBTI[main]) {
-    const c = cv(CHARACTER_MBTI[main]);
-    const dev = keys.reduce((s, k, i) => s + Math.abs(player[k] - c[i]), 0) / keys.length;
-    similarity = Math.max(0, Math.min(100, Math.round(100 - dev)));
-  }
-
-  // 次席：z-score 形状最接近（排除主匹配）
-  const pz = zscore(player, keys);
-  let second = null, secondD = Infinity, secondSim = 0;
+  // 统一算法：对每一位书中人物，都用"你的四维强度与其向量的平均绝对偏差"算契合度。
+  // 主匹配固定取你类型对应的那位；次席取**排除主匹配后、同一把尺下**契合度最高的一位。
+  // 这样主/次席是同一个度量，可以同榜排名，不再出现"主 81%、次 84%"这种不可比较的百分比。
+  let best = null, bestSim = -1, second = null, secondSim = -1;
   for (const id in CHARACTER_MBTI) {
-    if (id === main) continue;
-    const cz = zscore(CHARACTER_MBTI[id], keys);
-    const d = Math.sqrt(keys.reduce((s, k) => s + (pz[k] - cz[k]) ** 2, 0));
-    if (d < secondD) {
-      secondD = d; second = id;
-      secondSim = Math.max(0, Math.min(100, Math.round(100 - d * 18)));
-    }
+    if (!CHARACTER_MBTI[id]) continue;
+    const c = cv(CHARACTER_MBTI[id]);
+    const dev = keys.reduce((s, k, i) => s + Math.abs(player[k] - c[i]), 0) / keys.length;
+    const sim = Math.max(0, Math.min(100, Math.round(100 - dev)));
+    if (id === main) { best = id; bestSim = sim; continue; }
+    if (sim > secondSim) { secondSim = sim; second = id; }
   }
 
   return {
-    id: main, similarity,
-    second, secondSimilarity: secondSim,
+    id: best, similarity: bestSim < 0 ? 0 : bestSim,
+    second, secondSimilarity: secondSim < 0 ? 0 : secondSim,
   };
 }
 
-// ===== 计算 MBTI 结果 =====
-// raw:  { EI: n, SN: n, TF: n, JP: n }
-// caps: { EI: n, ... } 各维度"可获得的绝对上限"累计
-// 返回：{ type: 'INTJ', dims: [ {key, letter, percent, ...} ] }
-export function computeMBTI(raw, caps) {
+// ===== 每个节点的「机会统计」=====
+// 归一化需要三个参照：
+//   mean = 该节点所有选项在该维度的平均分 → 随机乱选的期望（零点 / 基线）
+//   max  = 最高分 → 全选最左（E/S/T/J）能达到的上限
+//   min  = 最低分 → 全选最右（I/N/F/P）能达到的下限
+// ⚠️ 只取 max|w| 是不够的：单侧权重的节点里，"没选到"会被静默算成 0 分——
+//    那不是"中性"，而是"无信号"，会让随机基线整体倒向某一侧。
+// allowIdx 可选：只统计这些下标对应的选项（用于排除被 require 锁住的选项，
+// 玩家选不到的选项不该进入基线，也不该抬高上限）。
+export function mbtiNodeStats(sceneId, allowIdx) {
+  const full = MBTI_CHOICE[sceneId] || [];
+  const list = allowIdx ? full.filter((_, i) => allowIdx.includes(i)) : full;
+  const out = {};
+  MBTI_DIMS.forEach(d => {
+    const vals = list.map(w => (w && typeof w[d.key] === 'number') ? w[d.key] : 0);
+    const n = vals.length;
+    const sum = vals.reduce((a, b) => a + b, 0);
+    out[d.key] = n
+      ? { n, mean: sum / n, max: Math.max(...vals), min: Math.min(...vals) }
+      : { n: 0, mean: 0, max: 0, min: 0 };
+  });
+  return out;
+}
+
+// ===== 计算 MBTI 结果（机会基线归一化）=====
+// raw  : { EI: n, ... } 玩家沿实际路径累计的分数
+// stat : { EI: { mean, max, min, n }, ... } 沿同一条路径累计的机会统计
+//
+//   dev      = raw - mean        相对"随机答题"的偏移 —— 这才是真正的信号
+//   向左余量 = max - mean        还能往 E/S/T/J 偏多少
+//   向右余量 = mean - min        还能往 I/N/F/P 偏多少
+//   区分幅度 = max - min         本局该维度的总区分能力；为 0 表示根本没考到
+//
+// 随机乱选会收敛到 50/50（因为它以自身期望为零点），而任何"稳定偏向一侧"
+// 的选择都会被放大成明确倾向 —— 这正是"人的偏好"应该被测量的东西。
+//
+// 无偏好处理：dev 恰为 0 或该维度本局无区分度时，不再硬编码归右，
+// 而是标记 resolved='tie' / 'none'，UI 如实显示"无偏好"，
+// 类型码按惯例取左侧字母并在结果页注明。
+export function computeMBTI(raw, stat) {
   const dims = MBTI_DIMS.map(d => {
-    const r = raw[d.key] || 0;
-    const cap = caps[d.key] || 0;
-    // 主导字母及强度：raw=0 → 50/50；raw=+cap → 100/0；raw=-cap → 0/100
-    let ratio = cap > 0 ? (r / cap) * 50 : 0;
-    ratio = Math.max(-50, Math.min(50, ratio));
-    const leftPct = Math.round(50 + ratio);      // 左侧字母(E/S/T/J)占比
-    const rightPct = 100 - leftPct;
-    const letter = r > 0 ? d.left : d.right;      // 0 时归右侧（常规做法）
+    const k = d.key;
+    const s = stat[k] || { mean: 0, max: 0, min: 0, n: 0 };
+    const r = raw[k] || 0;
+
+    const dev = r - s.mean;
+    const upRoom = s.max - s.mean;
+    const downRoom = s.mean - s.min;
+    const spread = s.max - s.min;
+
+    let leftPct, resolved;
+    if (spread <= 1e-9) {
+      leftPct = 50; resolved = 'none';
+    } else if (dev > 1e-9 && upRoom > 1e-9) {
+      leftPct = 50 + 50 * Math.min(1, dev / upRoom); resolved = 'ok';
+    } else if (dev < -1e-9 && downRoom > 1e-9) {
+      leftPct = 50 - 50 * Math.min(1, -dev / downRoom); resolved = 'ok';
+    } else {
+      leftPct = 50; resolved = 'tie';
+    }
+    leftPct = Math.round(Math.max(0, Math.min(100, leftPct)));
+    // 展示精度下的平局：取整后仍落在 50/50（例如基线偏移极小被舍入吞掉），
+    // 按"无偏好"处理，避免条形图停在 50/50 却仍被标成确定的 E/I/S/N/T/F/J 倾向。
+    if (leftPct === 50) resolved = spread <= 1e-9 ? 'none' : 'tie';
+
+    const letter = dev > 1e-9 ? d.left : dev < -1e-9 ? d.right : d.left;
+
     return {
-      key: d.key, letter,
+      key: k, letter, resolved,
       left: d.left, right: d.right,
       leftName: d.leftName, rightName: d.rightName,
-      leftPct, rightPct,
-      strength: Math.max(leftPct, rightPct),       // 偏好强度 50-100
+      leftPct, rightPct: 100 - leftPct,
+      strength: Math.max(leftPct, 100 - leftPct),
       desc: letter === d.left ? d.leftDesc : d.rightDesc,
       question: d.question,
       iconL: d.iconL, iconR: d.iconR,
-      raw: r,
+      raw: r, base: s.mean, dev,
+      items: s.n,
+      spread,
     };
   });
   const type = dims.map(d => d.letter).join('');
-  return { type, dims };
-}
-
-// 某场景节点各维度的可获得绝对上限
-export function mbtiNodeMax(sceneId) {
-  const list = MBTI_CHOICE[sceneId] || [];
-  const m = { EI: 0, SN: 0, TF: 0, JP: 0 };
-  list.forEach(w => {
-    if (!w) return;
-    for (const k in m) m[k] = Math.max(m[k], Math.abs(w[k] || 0));
-  });
-  return m;
+  const ties = dims.filter(d => d.resolved !== 'ok').map(d => d.left + '/' + d.right);
+  return { type, dims, ties };
 }

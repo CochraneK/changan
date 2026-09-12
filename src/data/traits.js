@@ -64,6 +64,7 @@ export const CHOICE_TRAITS = {
     { yi: 3, xin: 2 },           // 说吧，要我做什么
     { yi: 1, mou: 2 },           // 我要自由身，谈条件
     { mou: 2, xin: 1 },          // 我为什么要信你
+    { mou: 3, xin: 1 },          // 我不是唯一的人选（条件选项：先摸清自己的分量）
   ],
   s1_task: [
     { dan: 2, xin: 1 },          // 给我人权，横着走
@@ -135,6 +136,7 @@ export const CHOICE_TRAITS = {
     { xin: 3, ren: 2 },          // 我信你，跟我干
     { ren: 0, dan: 2 },          // 你签字时没想过查？（逼问）
     { xin: 2, ren: 2, yi: 1 },   // 都说了，我保你
+    { mou: 2, ren: 2, xin: 2 },  // 把文书摊开（条件选项：看过闻染文书才会出现）
   ],
   // 未时 · 靖安司之围
   h_wei: [
@@ -177,6 +179,7 @@ export const CHOICE_TRAITS = {
     { dan: 3, zhi: 3, yi: 2 },   // 我愿意，拔刀一战
     { yi: 3, xin: 3, ren: 1 },   // 我不为长安死，我为这些人活
     { ren: 3, mou: 2, yi: 2 },   // 收手吧，我替你报仇
+    { ren: 3, mou: 2 },          // 我懂你，但你杀的不是仇人（条件选项：共情劝降）
   ],
 };
 
@@ -211,9 +214,9 @@ export function makeTitle(scores) {
 }
 
 // ===== 归一化：绝对达成率 0-100 =====
-// 含义：在"本可以表现该特质"的场合里，你实际有多大比例选择了它
-// 例：义气 80 = 10 个能讲义气的路口，你走了 8 次义气
-// 这样跨局可比，也不会因某一维度权重密集而恒定满分
+// 含义：本局你在每个路口"能拿到的该特质满分之和"中，实际拿到的比例（达成率）
+// 例：义气 80 = 该维度各路口上限合计 50 分，你实际累计拿到 40 分（而非"10 次机会走 8 次"）
+// 权重 1~3 的选项计入不同，跨局可比，也不会因某一维度权重密集而恒定满分
 export function normalize(raw, maxPossible) {
   const out = {};
   for (const k in raw) {
@@ -226,8 +229,11 @@ export function normalize(raw, maxPossible) {
 }
 
 // 计算某个场景节点各维度的"可获得上限"（该节点所有选项里该维度的最高分）
-export function nodeMax(sceneId) {
-  const list = CHOICE_TRAITS[sceneId] || [];
+// allowIdx 可选：只统计这些下标对应的选项。
+// 条件锁住的选项玩家根本选不到，必须把它排除在分母之外，否则归一化会失真。
+export function nodeMax(sceneId, allowIdx) {
+  const full = CHOICE_TRAITS[sceneId] || [];
+  const list = allowIdx ? full.filter((_, i) => allowIdx.includes(i)) : full;
   const m = {};
   TRAITS.forEach(t => { m[t.key] = 0; });
   list.forEach(w => {

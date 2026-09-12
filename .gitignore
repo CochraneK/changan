@@ -1,7 +1,19 @@
+# WorkBuddy 项目数据（会话记录、记忆、临时探针），不属于源码
+.workbuddy/
+
+# 测试脚本产出的截图（shot* / mbti_* / psy_* / gate_* 等全部调试用图）
+tools/*.png
+
+# trace_choices.mjs 导出的审计报告（可随时用 npm run trace 重新生成）
+reports/
+
 # Python cache
 __pycache__/
 *.pyc
 *.pyo
+
+# Node
+node_modules/
 
 # OS files
 Thumbs.db

@@ -91,6 +91,13 @@
     }
     .ending-card h3 { color: var(--gold); font-size: 17px; margin-bottom: 10px; }
     .ending-card p { font-size: 13px; color: var(--text); line-height: 1.85; }
+    .ending-card p + p { margin-top: 8px; }
+    .ending-card .vary {
+      margin-top: 10px;
+      font-size: 12px;
+      color: var(--muted, #8a8578);
+      line-height: 1.7;
+    }
     .ending-card .tagline {
       margin-top: 12px;
       padding-top: 10px;
@@ -100,6 +107,32 @@
       font-size: 13px;
       text-align: center;
     }
+
+    /* 达成条件（从 h_hai 的选项与门控条件派生，不手写） */
+    .ending-card .how {
+      margin-top: 12px;
+      padding: 10px 12px;
+      background: rgba(0, 0, 0, .18);
+      border: 1px dashed var(--line);
+      border-radius: 3px;
+    }
+    .ending-card .how-title {
+      font-size: 11px;
+      letter-spacing: 2px;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+    .ending-card .how-row {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      font-size: 12px;
+      line-height: 1.6;
+      padding: 4px 0;
+    }
+    .ending-card .how-row + .how-row { border-top: 1px dotted var(--line); }
+    .ending-card .how-opt { color: var(--text); }
+    .ending-card .how-gate { color: var(--gold); font-size: 11px; }
 
     /* ===== MBTI 网格 ===== */
     .mbti-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 16px; }
@@ -338,13 +371,14 @@
   <!-- TOC -->
   <div class="toc">
     <div class="toc-title">📜 本章目次</div>
-    <a href="#endings">壹 · 三种结局</a>
+    <a href="#endings">壹 · 全部结局</a>
     <a href="#mbti">贰 · 十六型人格与人物</a>
     <a href="#characters">叁 · 长安人物名册</a>
   </div>
 
   <!-- ============ 结局 ============ -->
-  <div class="section-title" id="endings">壹 · 三种结局 <small>— 你的选择决定长安的命运</small></div>
+  <!-- 标题里的结局数量由脚本按 scenes.js 实际内容填充，不写死 -->
+  <div class="section-title" id="endings">壹 · 全部结局 <small>— 你的选择决定长安的命运</small></div>
   <div class="endings-grid" id="endingsGrid"></div>
 
   <!-- ============ MBTI ============ -->
@@ -369,43 +403,123 @@
 </div>
 
 <script type="module">
-import { characters, hours } from './src/data/characters.js';
-import { MBTI_TYPES, MBTI_DIMS, CHARACTER_MBTI } from './src/data/mbti.js';
+import { characters } from './src/data/characters.js';
+import { MBTI_TYPES, CHARACTER_MBTI } from './src/data/mbti.js';
 import { scenes } from './src/data/scenes.js';
+import { resolveText, conditionalInsertCount } from './src/text.js';
 
-// ===== 结局数据 =====
-const endings = [
-  { id: 'e_final_fight',   tag: '结局 · 血色长安', title: '血色长安', tagline: '你用刀守住了长安。代价是你自己。' },
-  { id: 'e_final_people',  tag: '结局 · 灯火如昼', title: '灯火如昼', tagline: '你守住的不是一座城，是城里的人。' },
-  { id: 'e_final_persuade',tag: '结局 · 未竟之局', title: '未竟之局', tagline: '你阻止了火，却没能阻止长安慢慢烂掉。' },
-];
+// 少量剧情 flag 的中文说明（没列到的就不显示文案，避免乱猜）
+//
+// ⚠️ 这两个必须声明在**顶层 `const endings = ...` 之前**。
+//    describeCond 是函数声明（会提升），但它在 endings 求值时被同步调用；
+//    而 const 不提升 —— 声明写在 endings 后面就会命中 TDZ，
+//    整页抛「Cannot access 'flagLabel' before initialization」，结局图鉴直接白屏。
+//    （曾经就是这个问题：页面结构完整、CSS 正常，就是渲染不出任何卡片。）
+const FLAG_LABELS = { chase_court: '查朝堂' };
+const flagLabel = (f) => FLAG_LABELS[f] || f;
 
-const endingTexts = {
-  e_final_fight: `你拔刀了。那一战，后来被说书人讲了许多年。龙波死了，十七桶阙勒霍多在最后一刻被推下灯楼。你可活了下了。天亮的时候，你一个人坐在靖安司的门槛上，看着长安城慢慢醒来。后来圣人下旨，赦你死罪。你没留在长安——你出了城，往西去了。可每年上元，总有说在灯影里看见过一个瘸腿的汉子，站了很久很久。`,
-  e_final_people: `「我不为长安死，我为这些人活。」龙波愣住了。他笑了很久，把火折子扔在地上，一脚踩灭：「我输给的不是你，是你们。」龙波被押进刑部大牢。上元灯会照常举行。三十丈的灯楼亮起来的时候，整座长安都在欢呼。你站在人群里，抬头看那盏最大的灯。你终于信了——长安不用你守。`,
-  e_final_persuade: `「收手吧。我替你把仇报了。」火折子落在地上，灭了。龙波被拿下时说：「那三年前的账，你自己去查。你会查到自己不想查的东西。」三个月后，你查到了那批军械的最终流向——指向了朝堂上一个你惹不起的名字。案卷被压了下来。上元节的灯又亮了。你没去看灯。你去西市买了一块胡饼，吃了很久。`,
-};
+// 把条件表达式翻译成给玩家看的人话
+function describeCond(cond) {
+  if (!cond) return '';
+  const parts = [];
+  if (typeof cond.allies === 'number') parts.push(`至少 ${cond.allies} 位同路人信任你`);
+  if (cond.flagsAll) parts.push(`需要${cond.flagsAll.map(f => '「' + flagLabel(f) + '」').join('、')}`);
+  if (cond.flagsAny) parts.push(`需要${cond.flagsAny.map(f => '「' + flagLabel(f) + '」').join(' 或 ')}`);
+  if (cond.trust) {
+    const t = Object.entries(cond.trust).map(([who, v]) => {
+      const name = (characters[who] && characters[who].name) || who;
+      return `${name}的信任 ≥ ${v}`;
+    });
+    parts.push(`需要${t.join('、')}`);
+  }
+  if (typeof cond.clues === 'number') parts.push(`至少 ${cond.clues} 条线索`);
+  return parts.join('，');
+}
+
+// 静态档案页没有玩家 state，需要一个"展示用"的条件判定：
+//   · flagsAll / flagsAny / 数值条件（allies/trust/clues）→ 全部判真，展示"把人/条件都凑齐"的完整版；
+//   · flagsNone → 只有当该 flag 不在本节点其它插段"出现为正向"时才成立，
+//     以此正确处理 e_final_persuade 里 `flagsAll:['final_empathy']` 与
+//     `flagsNone:['final_empathy']` 这种**互斥**插段——二者不能同时判真，
+//     否则会把劝降的两版开场错误地拼成同一段。
+function staticEvalCond(cond, sc) {
+  if (!cond) return true;
+  if (cond.flagsNone) {
+    const positiveFlags = new Set();
+    for (const it of (sc.inserts || [])) {
+      if (!it.when) continue;
+      if (it.when.flagsAll) it.when.flagsAll.forEach(f => positiveFlags.add(f));
+      if (it.when.flagsAny) it.when.flagsAny.forEach(f => positiveFlags.add(f));
+    }
+    return cond.flagsNone.every(f => !positiveFlags.has(f));
+  }
+  return true;
+}
+
+// ===== 结局数据：全部从 scenes.js 派生 =====
+// 早期版本在这里手抄了一份结局文案，结果抄出了「你可活了下了」这类错字且长期没人发现。
+// 现在文案、标题、结语都只有一个来源，改 scenes.js 这个页面自动跟着变。
+//
+// ⚠️ 正文必须走 resolveText（src/text.js），不能直接取 sc.text：
+//    结局节点里也有 {{inserts}} 标记，直接读会把标记原样吐出来。
+//    本页是静态档案、没有玩家 state，所以传 `staticEvalCond`（见上方定义）：
+//    正向条件（flagsAll/flagsAny/数值）全部判真，展示"把人/条件都凑齐"的完整版；
+//    但 `flagsNone` 会与同节点的 `flagsAll` 互斥——劝降结局的两种开场不会同时出现。
+//    到底实际会出现哪几段，由下方 varyNote 说明。
+const endings = Object.entries(scenes)
+  .filter(([, sc]) => sc.ending)
+  .map(([id, sc]) => ({
+    id,
+    tag: sc.endTag,
+    title: sc.endTag.replace(/^结局\s*·\s*/, ''),
+    tagline: sc.endingText || '',
+    text: resolveText(sc, c => staticEvalCond(c, sc)),
+    varyNote: conditionalInsertCount(sc),
+    routes: routesTo(id),
+  }));
+
+// 从 h_hai 的选项反推「怎么才能走到这个结局」——门控信息同样只有一个来源
+function routesTo(endId) {
+  const list = [];
+  ((scenes.h_hai && scenes.h_hai.choices) || []).forEach(ch => {
+    const isRouter = Array.isArray(ch.to);
+    if (isRouter) {
+      // 条件路由：同一选项可能有多条分支通往不同结局，逐条列出，避免漏掉"毁油罐也能成功"这类旁路
+      ch.to.forEach(r => {
+        if (!r || r.then !== endId) return;
+        const fallback = !r.when; // 没有 when 的兜底分支：前述条件都不满足时才走到
+        const gate = fallback
+          ? '（前述「拔刀」条件都不满足时的兜底：同路人不足 3 且未毁油罐）'
+          : describeCond(r.when);
+        list.push({ option: ch.t, gate });
+      });
+    } else {
+      if (ch.to !== endId) return;
+      list.push({ option: ch.t, gate: describeCond(ch.require || null) });
+    }
+  });
+  return list;
+}
 
 // ===== 维度分组 =====
 function temperament(type) {
-  if (type.startsWith('E') || type.startsWith('I')) {
-    const s = type[1];
-    const t = type[2];
-    const j = type[3];
-    if (s === 'N' && (t === 'T')) return 'NT';
-    if (s === 'N' && (t === 'F')) return 'NF';
-    if (s === 'S' && (j === 'J')) return 'SJ';
-    if (s === 'S' && (j === 'P')) return 'SP';
-  }
+  const [, s, t, j] = type;
+  if (s === 'N' && t === 'T') return 'NT';
+  if (s === 'N' && t === 'F') return 'NF';
+  if (s === 'S' && j === 'J') return 'SJ';
+  if (s === 'S' && j === 'P') return 'SP';
   return 'other';
 }
 
-function dimLabel(key, letter) {
+function dimLabel(letter) {
   const map = { E:'外向', I:'内向', S:'实感', N:'直觉', T:'思考', F:'情感', J:'判断', P:'知觉' };
   return map[letter] || letter;
 }
 
 // ===== 渲染结局 =====
+document.getElementById('endings').innerHTML =
+  `壹 · 全部结局（${endings.length} 种） <small>— 你的选择决定长安的命运</small>`;
+
 const endingsGrid = document.getElementById('endingsGrid');
 endings.forEach(e => {
   const card = document.createElement('div');
@@ -413,8 +527,14 @@ endings.forEach(e => {
   card.innerHTML = `
     <div class="tag">${e.tag}</div>
     <h3>${e.title}</h3>
-    <p>${endingTexts[e.id]}</p>
+    ${e.text.split('\n\n').filter(p => p.trim()).map(p => `<p>${p}</p>`).join('')}
+    ${e.varyNote ? `<div class="vary">本结局正文含 ${e.varyNote} 段随选择变化的段落 —— 上方按一种完整路线展示，实际游戏里只会出现你真正触发的那一版。</div>` : ''}
     <div class="tagline">${e.tagline}</div>
+    ${e.routes.length ? `<div class="how"><div class="how-title">如何抵达</div>${e.routes.map(r => `
+      <div class="how-row">
+        <span class="how-opt">${r.option}</span>
+        ${r.gate ? `<span class="how-gate">${r.gate}</span>` : ''}
+      </div>`).join('')}</div>` : ''}
   `;
   endingsGrid.appendChild(card);
 });
@@ -475,6 +595,10 @@ filterBtns.forEach(btn => {
     renderMBTI(btn.dataset.filter);
   });
 });
+
+// 过滤器上的数字按实际数据填充，避免写死后与 MBTI_TYPES 脱节
+const allFilterBtn = document.querySelector('[data-filter="all"]');
+if (allFilterBtn) allFilterBtn.textContent = `全部 (${Object.keys(MBTI_TYPES).length})`;
 
 renderMBTI();
 
