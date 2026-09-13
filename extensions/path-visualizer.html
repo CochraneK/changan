@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>选择路径全景图 · 长安十二时辰</title>
+<link rel="icon" href="data:,">
+<style>
+:root {
+  --bg: #14100e; --bg2: #1d1712; --panel: #221b15;
+  --line: #4a3a28; --text: #e8dcc8; --muted: #9a8a72;
+  --accent: #d4a24c; --gold: #e0b657;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: var(--bg); color: var(--text);
+  font-family: "Songti SC","STSong","SimSun","Noto Serif CJK SC",serif;
+  font-size: 14px; padding: 30px 20px 60px;
+}
+.container { max-width: 1300px; margin: 0 auto; }
+
+header {
+  text-align: center; border-bottom: 1px solid var(--line);
+  padding-bottom: 24px; margin-bottom: 32px;
+}
+header h1 { font-size: 26px; color: var(--gold); letter-spacing: 4px; }
+header p { color: var(--muted); font-size: 13px; margin-top: 6px; }
+header .back { margin-top: 14px; }
+header .back a {
+  color: var(--accent); text-decoration: none;
+  border: 1px solid var(--line); padding: 5px 14px; border-radius: 3px;
+  font-size: 12px; margin: 0 4px;
+}
+
+/* Controls */
+.controls {
+  display: flex; gap: 16px; flex-wrap: wrap; justify-content: center;
+  margin-bottom: 24px; align-items: center;
+}
+.controls label { color: var(--muted); font-size: 12px; }
+.controls select {
+  background: var(--bg2); color: var(--text); border: 1px solid var(--line);
+  padding: 5px 10px; border-radius: 3px; font-family: inherit; font-size: 12px;
+}
+.controls .legend {
+  display: flex; gap: 14px; flex-wrap: wrap;
+}
+.controls .legend-item { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--muted); }
+.controls .legend-dot { width: 12px; height: 12px; border-radius: 50%; }
+
+/* Canvas */
+#treeCanvas {
+  width: 100%; height: auto;
+  background: var(--bg2);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  display: block;
+}
+
+/* Tooltip */
+#tooltip {
+  position: fixed; display: none;
+  background: var(--panel); border: 1px solid var(--line);
+  border-radius: 6px; padding: 12px 16px;
+  max-width: 320px;
+  font-size: 12px; line-height: 1.7;
+  z-index: 100;
+  pointer-events: none;
+  box-shadow: 0 4px 20px rgba(0,0,0,.5);
+}
+#tooltip.show { display: block; }
+#tooltip h4 { color: var(--gold); font-size: 13px; margin-bottom: 4px; }
+#tooltip p { color: var(--text); }
+#tooltip .meta { color: var(--muted); font-size: 11px; margin-top: 4px; }
+
+/* Stats bar */
+.stats-bar {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+  margin-top: 22px;
+}
+.stat-card {
+  background: var(--panel); border: 1px solid var(--line);
+  border-radius: 4px; padding: 14px 16px; text-align: center;
+}
+.stat-card .num { font-size: 22px; color: var(--gold); font-weight: bold; }
+.stat-card .label { font-size: 11px; color: var(--muted); margin-top: 4px; letter-spacing: 1px; }
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>🌳 选择路径全景图</h1>
+    <p>从死牢到结局 — 长安十二时辰 · 完整抉择树</p>
+    <div class="back">
+      <a href="../index.html">← 返回游戏</a>
+      <a href="hub.html">🏠 项目总控台</a>
+      <a href="character-cards.html">🃏 人物图鉴</a>
+    </div>
+  </header>
+
+  <div class="controls">
+    <div>
+      <label>高亮路径</label>
+      <select id="pathSelect">
+        <option value="">全部（全景）</option>
+        <option value="e_hero">大英雄 · 以身许国</option>
+        <option value="e_people">大英雄 · 众望所归</option>
+        <option value="e_alone">独行人 · 死而无憾</option>
+        <option value="e_darkness">暗夜 · 玉石俱焚</option>
+      </select>
+    </div>
+    <div class="legend">
+      <span class="legend-item"><span class="legend-dot" style="background:#d4a24c"></span> 抉择点</span>
+      <span class="legend-item"><span class="legend-dot" style="background:#6b8e5a"></span> 消遣场景</span>
+      <span class="legend-item"><span class="legend-dot" style="background:#b8452f"></span> 结局</span>
+      <span class="legend-item"><span class="legend-dot" style="background:#4a3a28"></span> 过场</span>
+      <span class="legend-item"><span style="color:#e0b657">━━</span> 路径</span>
+    </div>
+  </div>
+
+  <svg id="treeCanvas" viewBox="0 0 1200 2000"></svg>
+
+  <div class="stats-bar" id="statsBar"></div>
+</div>
+<div id="tooltip"></div>
+
+<script type="module">
+import { scenes, START_SCENE, isPassage } from '../src/data/scenes.js';
+import { hours } from '../src/data/characters.js';
+
+// ── Build adjacency / node-level data ──
+const NODE_W = 180, NODE_H = 38, LEVEL_GAP = 40, SIB_GAP = 8;
+const LEVEL_Y_PAD = 60;
+
+const hourMap = {};
+hours.forEach(h => { hourMap[h.key] = h; });
+
+// Level assignment via BFS (hour-primary, then topological)
+const levels = {};  // nodeId → level index
+const levelNodes = {}; // level → [nodeId]
+
+function assignLevels() {
+  const visited = new Set();
+  const queue = [{ id: START_SCENE, level: 0 }];
+  visited.add(START_SCENE);
+  while (queue.length > 0) {
+    const { id, level } = queue.shift();
+    levels[id] = level;
+    if (!levelNodes[level]) levelNodes[level] = [];
+    levelNodes[level].push(id);
+    const sc = scenes[id];
+    if (!sc) continue;
+    // Collect all possible next nodes
+    const nexts = new Set();
+    if (sc.choices) {
+      sc.choices.forEach(ch => {
+        if (Array.isArray(ch.to)) {
+          ch.to.forEach(r => { if (r.then) nexts.add(r.then); });
+        } else if (typeof ch.to === 'string') {
+          nexts.add(ch.to);
+        }
+      });
+    }
+    if (sc.next) nexts.add(sc.next);
+    if (sc.ending) continue;
+    nexts.forEach(nid => {
+      if (!visited.has(nid) && scenes[nid]) {
+        visited.add(nid);
+        queue.push({ id: nid, level: level + 1 });
+      }
+    });
+  }
+}
+assignLevels();
+
+const maxLevel = Math.max(...Object.values(levels));
+
+// Pre-compute per-level Y positions
+function getLevelY(level) {
+  return LEVEL_Y_PAD + level * (NODE_H + LEVEL_GAP);
+}
+
+// Layout each level (center horizontally)
+const nodePos = {};
+
+function layoutNodes() {
+  for (let l = 0; l <= maxLevel; l++) {
+    const nodes = levelNodes[l] || [];
+    const totalH = nodes.length * NODE_H + (nodes.length - 1) * SIB_GAP;
+    const startY = getLevelY(l) - totalH / 2;
+    nodes.forEach((id, i) => {
+      const hour = scenes[id]?.hour;
+      // Sort nodes by hour within level
+      nodePos[id] = {
+        y: startY + i * (NODE_H + SIB_GAP),
+        x: 60 + l * (NODE_W + 30),
+      };
+    });
+  }
+}
+layoutNodes();
+
+// Determine node type
+function nodeType(id) {
+  const sc = scenes[id];
+  if (!sc) return 'unknown';
+  if (sc.ending) return 'ending';
+  if (id.startsWith('h_') && (id.includes('snack') || id.includes('roof') || id.includes('gela') || id.includes('xubin'))) return 'leisure';
+  if (isPassage(sc)) return 'passage';
+  return 'choice';
+}
+
+function nodeColor(type) {
+  switch (type) {
+    case 'choice': return '#d4a24c';
+    case 'leisure': return '#6b8e5a';
+    case 'ending': return '#b8452f';
+    case 'passage': return '#4a3a28';
+    default: return '#555';
+  }
+}
+
+// ── Render SVG ──
+const svg = document.getElementById('treeCanvas');
+const tooltip = document.getElementById('tooltip');
+const NS = 'http://www.w3.org/2000/svg';
+
+function render(highlightEnding) {
+  const W = 1200, H = 2000;
+  svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+
+  let html = `<defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M0,0 L10,5 L0,10" fill="#4a3a28"/>
+    </marker>
+    <marker id="arrow-gold" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M0,0 L10,5 L0,10" fill="#d4a24c"/>
+    </marker>
+  </defs>
+  <rect width="${W}" height="${H}" fill="#1d1712" rx="6"/>`;
+
+  // Edges
+  const edgeSet = new Set();
+  Object.entries(scenes).forEach(([id, sc]) => {
+    if (!sc) return;
+    const p = nodePos[id];
+    if (!p) return;
+    const nexts = new Set();
+    if (sc.choices) {
+      sc.choices.forEach(ch => {
+        if (Array.isArray(ch.to)) {
+          ch.to.forEach(r => { if (r.then) nexts.add(r.then); });
+        } else if (typeof ch.to === 'string') {
+          nexts.add(ch.to);
+        }
+      });
+    }
+    if (sc.next) nexts.add(sc.next);
+    nexts.forEach(nid => {
+      if (!nodePos[nid]) return;
+      const child = nodePos[nid];
+      const edgeKey = [id, nid].sort().join('|');
+      if (edgeSet.has(edgeKey)) return;
+      edgeSet.add(edgeKey);
+      const isHighlight = highlightEnding && hasPathTo(id, highlightEnding);
+      html += `<line x1="${p.x + NODE_W}" y1="${p.y + NODE_H / 2}"
+        x2="${child.x}" y2="${child.y + NODE_H / 2}"
+        stroke="${isHighlight ? '#e0b657' : '#4a3a28'}"
+        stroke-width="${isHighlight ? 2 : 1}"
+        stroke-opacity="${isHighlight ? 1 : 0.4}"
+        marker-end="${isHighlight ? 'url(#arrow-gold)' : 'url(#arrow)'}"
+        class="edge"/>`;
+    });
+  });
+
+  // Nodes
+  Object.entries(nodePos).forEach(([id, pos]) => {
+    if (!scenes[id]) return;
+    const sc = scenes[id];
+    const type = nodeType(id);
+    const color = nodeColor(type);
+    const isHighlight = highlightEnding && hasPathTo(id, highlightEnding);
+    const isEnding = highlightEnding === id;
+    const opacity = highlightEnding ? (isHighlight ? 1 : 0.2) : 1;
+
+    const hour = hourMap[sc.hour];
+    const label = sc.place?.length > 16 ? sc.place.slice(0, 14) + '…' : (sc.place || id);
+    const hourLabel = hour ? `${hour.name}` : '';
+
+    html += `<g class="node" data-id="${id}" style="cursor:pointer;opacity:${opacity}">
+      <rect x="${pos.x}" y="${pos.y}" width="${NODE_W}" height="${NODE_H}"
+        rx="5" ry="5"
+        fill="${color}" fill-opacity="0.15"
+        stroke="${isEnding ? '#e0b657' : color}"
+        stroke-width="${isEnding ? 2.5 : 1.5}"
+        class="node-bg"/>
+      <text x="${pos.x + NODE_W / 2}" y="${pos.y + NODE_H / 2 + 1}"
+        text-anchor="middle" dominant-baseline="central"
+        fill="${isEnding ? '#e0b657' : '#e8dcc8'}"
+        font-size="11" font-family="inherit">
+        <tspan>${esc(hourLabel)}</tspan>
+        <tspan dx="4" fill="#9a8a72">${esc(label)}</tspan>
+      </text>
+    </g>`;
+  });
+
+  svg.innerHTML = html;
+
+  // Stats
+  renderStats();
+}
+
+function hasPathTo(fromId, targetId) {
+  if (fromId === targetId) return true;
+  const visited = new Set();
+  const queue = [fromId];
+  visited.add(fromId);
+  while (queue.length > 0) {
+    const cur = queue.shift();
+    if (cur === targetId) return true;
+    const sc = scenes[cur];
+    if (!sc) continue;
+    const nexts = new Set();
+    if (sc.choices) {
+      sc.choices.forEach(ch => {
+        if (Array.isArray(ch.to)) {
+          ch.to.forEach(r => { if (r.then) nexts.add(r.then); });
+        } else if (typeof ch.to === 'string') {
+          nexts.add(ch.to);
+        }
+      });
+    }
+    if (sc.next) nexts.add(sc.next);
+    nexts.forEach(nid => {
+      if (!visited.has(nid) && scenes[nid]) {
+        visited.add(nid);
+        queue.push(nid);
+      }
+    });
+  }
+  return false;
+}
+
+function renderStats() {
+  const totalNodes = Object.keys(scenes).filter(id => scenes[id] && !scenes[id].ending === undefined || !scenes[id]?.ending).length;
+  const endings = Object.keys(scenes).filter(id => scenes[id]?.ending).length;
+  const choices = Object.entries(scenes).filter(([, sc]) => sc.choices).length;
+  const passages = Object.entries(scenes).filter(([, sc]) => isPassage(sc)).length;
+  const totalOptions = Object.values(scenes).reduce((s, sc) => s + (sc.choices?.length || 0), 0);
+
+  document.getElementById('statsBar').innerHTML = `
+    <div class="stat-card"><div class="num">${totalNodes}</div><div class="label">总节点</div></div>
+    <div class="stat-card"><div class="num">${endings}</div><div class="label">结局</div></div>
+    <div class="stat-card"><div class="num">${choices}</div><div class="label">抉择点</div></div>
+    <div class="stat-card"><div class="num">${passages}</div><div class="label">过场</div></div>
+    <div class="stat-card"><div class="num">${totalOptions}</div><div class="label">总选项</div></div>
+    <div class="stat-card"><div class="num">${maxLevel + 1}</div><div class="label">剧情层数</div></div>
+  `;
+}
+
+function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+// Tooltip events (delegated)
+svg.addEventListener('mouseover', (e) => {
+  const g = e.target.closest('.node');
+  if (!g) { tooltip.classList.remove('show'); return; }
+  const id = g.dataset.id;
+  const sc = scenes[id];
+  if (!sc) return;
+  const hour = hourMap[sc.hour];
+  const type = nodeType(id);
+  tooltip.innerHTML = `<h4>${esc(sc.place || id)}</h4>
+    <p>${hour ? esc(hour.name + ' · ' + hour.label) : ''} ${type === 'ending' ? esc('【' + sc.endTag + '】') : ''}</p>
+    <p style="font-size:11px;color:#9a8a72">ID: ${id} · 类型: ${type === 'choice' ? '抉择点' : type === 'passage' ? '过场' : type === 'leisure' ? '消遣' : type === 'ending' ? '结局' : '未知'}</p>
+    <p class="meta">${sc.choices ? sc.choices.length + ' 个选项' : '1 个出口'}</p>`;
+  tooltip.classList.add('show');
+});
+
+svg.addEventListener('mousemove', (e) => {
+  const rect = svg.getBoundingClientRect();
+  tooltip.style.left = (e.clientX + 16) + 'px';
+  tooltip.style.top = (e.clientY + 16) + 'px';
+});
+
+svg.addEventListener('mouseleave', () => tooltip.classList.remove('show'));
+
+// Filter control
+document.getElementById('pathSelect').addEventListener('change', (e) => {
+  render(e.target.value);
+});
+
+render('');
+</script>
+</body>
+</html>

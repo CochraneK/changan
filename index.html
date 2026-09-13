@@ -32,6 +32,10 @@
           <iconify-icon icon="game-icons:scroll-unfurled" aria-hidden="true"></iconify-icon>
           <span>结局图鉴</span>
         </a>
+        <a href="./extensions/hub.html" class="nav-link" title="项目总控台">
+          <iconify-icon icon="game-icons:forge" aria-hidden="true"></iconify-icon>
+          <span>总控台</span>
+        </a>
         <button class="nav-link" id="restartBtn" type="button" title="清空进度，从死牢重新开始">
           <iconify-icon icon="game-icons:reload" aria-hidden="true"></iconify-icon>
           <span>重新开局</span>
@@ -67,6 +71,20 @@
         <div id="clueList" class="list"></div>
       </section>
 
+      <!-- 侦探笔记 -->
+      <section class="panel-section">
+        <div class="panel-title"><iconify-icon icon="game-icons:spyglass" aria-hidden="true"></iconify-icon> 侦探笔记</div>
+        <div id="puzzleList" class="list"></div>
+      </section>
+
+      <!-- 长安小识（历史知识卡片） -->
+      <section class="panel-section">
+        <div class="panel-title"><iconify-icon icon="game-icons:open-book" aria-hidden="true"></iconify-icon> 长安小识</div>
+        <div id="knowledgeSideList" class="list">
+          <div class="empty-hint">游历长安，解锁知识。</div>
+        </div>
+      </section>
+
       <!-- 队伍 / 关系 -->
       <section class="panel-section">
         <div class="panel-title"><iconify-icon icon="game-icons:grouped-drops" aria-hidden="true"></iconify-icon> 同路人</div>
@@ -81,6 +99,18 @@
 
       <div class="panel-foot">键盘 1 / 2 / 3 可直接选择选项</div>
     </aside>
+  </div>
+
+  <!-- 推理突破通知 -->
+  <div id="puzzleToast" class="puzzle-toast hidden" role="alert" aria-live="polite"></div>
+
+  <!-- 历史知识卡片弹窗 -->
+  <div id="knowledgeModal" class="knowledge-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="knowledgeModalTitle" aria-hidden="true">
+    <div class="knowledge-overlay-bg"></div>
+    <div class="knowledge-overlay-content">
+      <button class="knowledge-close" id="knowledgeModalClose" type="button" aria-label="关闭">✕</button>
+      <div id="knowledgeModalBody"></div>
+    </div>
   </div>
 
   <!-- 结局 / 重置浮层 -->

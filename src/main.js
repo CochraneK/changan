@@ -10,6 +10,14 @@ import {
   computeMBTI, mbtiNodeStats, matchMBTICharacter,
 } from './data/mbti.js';
 import { resolveText } from './text.js';
+import {
+  computePipelineProgress, checkNewUnlocks, renderPuzzlePanel,
+  PUZZLE_PIPELINES,
+} from './data/puzzles.js';
+import {
+  getCardsForNode, renderCardContent, renderSideCardItem,
+  KNOWLEDGE_CARDS,
+} from './data/knowledge.js';
 
 // ===== 游戏状态 =====
 const state = {
@@ -27,6 +35,7 @@ const state = {
   mbtiLo: {},       // 全部选最右（I/N/F/P）时的下限
   mbtiItems: {},    // 该维度上有区分度的题数
   ended: false,
+  unlockedCards: [], // 已解锁的知识卡片 id 数组
 };
 
 // 初始化全部数值型状态
@@ -47,6 +56,7 @@ function initState() {
     state.mbtiLo[d.key] = 0;
     state.mbtiItems[d.key] = 0;
   });
+  state.unlockedCards = [];
 }
 
 // ===== 存档 =====
@@ -68,6 +78,7 @@ function saveState() {
       mbtiHi: state.mbtiHi,
       mbtiLo: state.mbtiLo,
       mbtiItems: state.mbtiItems,
+      unlockedCards: state.unlockedCards,
     }));
   } catch (e) {
     // 无痕模式 / 存储被禁用时静默降级，不影响游戏
@@ -103,6 +114,7 @@ function loadState() {
   state.mbtiHi = Object.assign({}, state.mbtiHi, s.mbtiHi || {});
   state.mbtiLo = Object.assign({}, state.mbtiLo, s.mbtiLo || {});
   state.mbtiItems = Object.assign({}, state.mbtiItems, s.mbtiItems || {});
+  state.unlockedCards = Array.isArray(s.unlockedCards) ? s.unlockedCards : [];
   return true;
 }
 
@@ -115,6 +127,7 @@ const elMoment = $('#momentLabel');
 const elHourCount = $('#hourCount');
 const elChoiceCount = $('#choiceCount');
 const elClueList = $('#clueList');
+const elPuzzleList = $('#puzzleList');
 const elPartyList = $('#partyList');
 const elChronicle = $('#chronicleList');
 const elOverlay = $('#overlay');
@@ -122,6 +135,12 @@ const elOverlayTitle = $('#overlayTitle');
 const elOverlayBody = $('#overlayBody');
 const elOverlayAction = $('#overlayAction');
 const elRestart = $('#restartBtn');
+
+// 知识卡片
+const elKnowledgeSideList = $('#knowledgeSideList');
+const elKnowledgeModal = $('#knowledgeModal');
+const elKnowledgeModalBody = $('#knowledgeModalBody');
+const elKnowledgeModalClose = $('#knowledgeModalClose');
 
 const HOUR_ORDER = hours.map(h => h.key);
 
@@ -268,6 +287,15 @@ function renderSide() {
         return `<div class="list-item">${hour ? hour.name : h}</div>`;
       }).join('');
   }
+
+  // 侦探笔记
+  if (elPuzzleList) {
+    const puzzleHTML = renderPuzzlePanel(state.clues, state.flags);
+    elPuzzleList.innerHTML = puzzleHTML;
+  }
+
+  // 长安小识（知识卡片侧栏）
+  renderKnowledgeSide();
 }
 
 // ===== 渲染：场景 =====
@@ -297,6 +325,21 @@ function renderScene() {
       .replace(/「([^」]*)」/g, '<span class="say">「$1」</span>');
     html += `<p>${marked.replace(/\n/g, '<br>')}</p>`;
   });
+  // 知识卡片触发按钮
+  const sceneCards = getCardsForNode(state.sceneId);
+  if (sceneCards.length > 0) {
+    const card = sceneCards[0]; // 每个节点最多关联一张卡片
+    // 首次到访自动解锁
+    if (!state.unlockedCards.includes(card.id)) {
+      state.unlockedCards.push(card.id);
+      saveState();
+    }
+    const alreadyUnlocked = true; // 刚加过了
+    html += `<button class="knowledge-trigger" data-card-id="${card.id}"
+      type="button" onclick="window.__openKnowledgeCard('${card.id}')">
+      📖 长安小识 · ${card.title}
+    </button>`;
+  }
   html += `</div>`;
 
   if (sc.ending) {
@@ -428,6 +471,14 @@ function choose(choice, index) {
     for (const id in choice.trust) {
       state.trust[id] = (state.trust[id] ?? 0) + choice.trust[id];
     }
+  }
+
+  // ===== 推理突破检查 =====
+  const newUnlocks = checkNewUnlocks(state.clues, state.flags);
+  for (const p of newUnlocks) {
+    state.flags.add(p.reward.flag);
+    // 延迟显示 toast，等下一场景渲染完成后弹出
+    setTimeout(() => showPuzzleToast(p), 400);
   }
 
   const next = resolveTo(choice.to);
@@ -640,6 +691,68 @@ function escapeHtml(s) {
     .replace(/"/g, '&quot;');
 }
 
+// ===== 推理突破 Toast 通知 =====
+const elPuzzleToast = document.getElementById('puzzleToast');
+let toastTimer = null;
+
+function showPuzzleToast(pipeline) {
+  if (!elPuzzleToast) return;
+  if (toastTimer) { clearTimeout(toastTimer); toastTimer = null; }
+
+  elPuzzleToast.className = 'puzzle-toast hidden';
+  // 触发重排以重启动画
+  void elPuzzleToast.offsetWidth;
+
+  elPuzzleToast.innerHTML = `
+    <div class="toast-title">🔍 推理突破 · ${escapeHtml(pipeline.name)}</div>
+    <div>${escapeHtml(pipeline.reward.text)}</div>
+  `;
+  elPuzzleToast.className = 'puzzle-toast visible';
+
+    toastTimer = setTimeout(() => {
+    elPuzzleToast.classList.remove('visible');
+    elPuzzleToast.classList.add('hidden');
+    toastTimer = null;
+  }, 6000);
+}
+
+// ===== 长安小识 · 历史知识卡片 =====
+// 渲染侧栏知识卡片列表
+function renderKnowledgeSide() {
+  if (!elKnowledgeSideList) return;
+  const unlocked = state.unlockedCards || [];
+  if (unlocked.length === 0) {
+    elKnowledgeSideList.innerHTML = '<div class="empty-hint">游历长安，解锁知识。</div>';
+    return;
+  }
+  elKnowledgeSideList.innerHTML = unlocked
+    .map(id => KNOWLEDGE_CARDS.find(c => c.id === id))
+    .filter(Boolean)
+    .map(c => renderSideCardItem(c))
+    .join('');
+}
+
+// 打开知识卡片弹窗
+function openKnowledgeCard(cardId) {
+  const card = KNOWLEDGE_CARDS.find(c => c.id === cardId);
+  if (!card || !elKnowledgeModal || !elKnowledgeModalBody) return;
+  elKnowledgeModalBody.innerHTML = renderCardContent(card);
+  elKnowledgeModal.classList.remove('hidden');
+  elKnowledgeModal.setAttribute('aria-hidden', 'false');
+  // 给侧栏也标记已读
+  renderKnowledgeSide();
+}
+
+// 关闭知识卡片弹窗
+function closeKnowledgeModal() {
+  if (!elKnowledgeModal) return;
+  elKnowledgeModal.classList.add('hidden');
+  elKnowledgeModal.setAttribute('aria-hidden', 'true');
+}
+
+// 暴露到 window，供剧情正文中的 onclick 调用
+window.__openKnowledgeCard = openKnowledgeCard;
+
 // ===== 键盘操作：数字键选选项，结局页回车重开 =====
 document.addEventListener('keydown', (e) => {
   if (e.ctrlKey || e.metaKey || e.altKey) return;
@@ -677,6 +790,38 @@ if (elPanelToggle && elSidePanel) {
   });
 }
 
+// ===== 知识卡片弹窗控制 =====
+if (elKnowledgeModalClose) {
+  elKnowledgeModalClose.addEventListener('click', closeKnowledgeModal);
+}
+// 点击背景关闭
+if (elKnowledgeModal) {
+  elKnowledgeModal.addEventListener('click', (e) => {
+    if (e.target === elKnowledgeModal || e.target.classList.contains('knowledge-overlay-bg')) {
+      closeKnowledgeModal();
+    }
+  });
+}
+// ESC 键关闭
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && elKnowledgeModal && !elKnowledgeModal.classList.contains('hidden')) {
+    closeKnowledgeModal();
+  }
+});
+// 点击侧栏卡片项打开弹窗（委托事件）
+if (elKnowledgeSideList) {
+  elKnowledgeSideList.addEventListener('click', (e) => {
+    const item = e.target.closest('.side-card-item');
+    if (item) openKnowledgeCard(item.dataset.cardId);
+  });
+  elKnowledgeSideList.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      const item = e.target.closest('.side-card-item');
+      if (item) { e.preventDefault(); openKnowledgeCard(item.dataset.cardId); }
+    }
+  });
+}
+
 // ===== 启动 =====
 initState();
 const resumed = loadState();
@@ -693,6 +838,16 @@ if (elResumeNote) {
     elResumeNote.classList.remove('hidden');
   }
 }
+
+// ===== 推理突破：旧存档兼容 =====
+// 如果存档是旧版本的（不含 puzzle flags），检查并补上
+(function() {
+  const unlocks = checkNewUnlocks(state.clues, state.flags);
+  for (const p of unlocks) {
+    state.flags.add(p.reward.flag);
+  }
+  if (unlocks.length > 0) saveState();
+})();
 
 // ===== 图标兜底 =====
 // 图标来自外部 CDN。离线或被网络策略拦掉时，可能出现两种情形：

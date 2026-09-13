@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>分享我的长安结局</title>
+<link rel="icon" href="data:,">
+<style>
+:root {
+  --bg: #14100e; --text: #e8dcc8; --accent: #d4a24c; --gold: #e0b657;
+  --muted: #9a8a72; --line: #4a3a28; --panel: #221b15;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: var(--bg); color: var(--text);
+  font-family: "Songti SC","STSong","SimSun","Noto Serif CJK SC",serif;
+  text-align: center; padding: 30px 20px 60px;
+}
+.container { max-width: 600px; margin: 0 auto; }
+
+h1 { font-size: 26px; color: var(--gold); letter-spacing: 4px; margin-bottom: 6px; }
+.sub { color: var(--muted); font-size: 13px; margin-bottom: 24px; }
+
+.back-link { margin-bottom: 20px; }
+.back-link a {
+  color: var(--accent); text-decoration: none;
+  border: 1px solid var(--line); padding: 5px 14px; border-radius: 3px; font-size: 12px;
+}
+
+/* Card preview */
+.card-preview {
+  width: 480px; height: 640px;
+  background: linear-gradient(135deg, #1a1210 0%, #2b1a10 50%, #1a1210 100%);
+  border: 2px solid var(--gold);
+  border-radius: 12px;
+  margin: 0 auto 24px;
+  padding: 30px;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Decorative elements */
+.card-preview::before {
+  content: '';
+  position: absolute; top: -20px; right: -20px;
+  width: 120px; height: 120px;
+  border: 2px solid rgba(212,162,76,.15);
+  border-radius: 50%;
+}
+.card-preview::after {
+  content: '🏮'; position: absolute; top: 15px; right: 25px;
+  font-size: 36px; opacity: 0.3;
+}
+.card-corner {
+  position: absolute; bottom: -30px; left: -30px;
+  width: 100px; height: 100px;
+  border: 2px solid rgba(212,162,76,.1);
+  border-radius: 50%;
+}
+
+.card-header {
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 16px;
+  margin-bottom: 18px;
+}
+.card-header .title-card {
+  font-size: 14px; color: var(--gold); letter-spacing: 6px;
+}
+.card-header .subtitle-card {
+  font-size: 11px; color: var(--muted); margin-top: 4px;
+}
+
+.card-body { flex: 1; display: flex; flex-direction: column; justify-content: center; }
+
+.ending-type {
+  font-size: 28px; color: var(--gold); letter-spacing: 8px;
+  margin-bottom: 12px; font-weight: bold;
+}
+.ending-sub {
+  font-size: 14px; color: var(--text); margin-bottom: 20px;
+  line-height: 1.7;
+}
+
+.mbti-display {
+  display: flex; align-items: center; justify-content: center; gap: 16px;
+  margin: 16px 0;
+}
+.mbti-letters {
+  font-size: 36px; color: var(--gold); font-weight: bold;
+  letter-spacing: 4px;
+}
+.mbti-name-card {
+  font-size: 14px; color: var(--muted);
+  text-align: left;
+  line-height: 1.5;
+}
+
+.match-character {
+  background: rgba(212,162,76,.08);
+  border: 1px solid rgba(212,162,76,.2);
+  border-radius: 6px; padding: 12px 16px;
+  margin: 12px 0;
+}
+.match-character .label { font-size: 10px; color: var(--muted); letter-spacing: 2px; }
+.match-character .name { font-size: 16px; color: var(--gold); }
+.match-character .alias { font-size: 11px; color: var(--muted); }
+
+.stats-row {
+  display: flex; justify-content: center; gap: 24px;
+  margin: 14px 0;
+}
+.stats-row .item { text-align: center; }
+.stats-row .num { font-size: 18px; color: var(--gold); font-weight: bold; }
+.stats-row .lbl { font-size: 10px; color: var(--muted); letter-spacing: 1px; }
+
+.card-footer {
+  border-top: 1px solid var(--line);
+  padding-top: 14px;
+  font-size: 10px; color: var(--muted);
+  letter-spacing: 1px;
+}
+
+/* Controls */
+.controls {
+  display: flex; flex-direction: column; align-items: center; gap: 12px;
+  margin: 24px 0;
+}
+.controls label { font-size: 12px; color: var(--muted); }
+.controls select, .controls input {
+  background: var(--panel); color: var(--text);
+  border: 1px solid var(--line); padding: 8px 14px;
+  border-radius: 4px; font-family: inherit; font-size: 14px;
+  width: 300px; text-align: center;
+}
+.controls button {
+  background: var(--panel); color: var(--gold);
+  border: 1px solid var(--gold); padding: 10px 28px;
+  border-radius: 4px; cursor: pointer; font-family: inherit;
+  font-size: 14px; letter-spacing: 2px; transition: all .15s;
+}
+.controls button:hover { background: rgba(212,162,76,.15); }
+
+.share-hint {
+  font-size: 11px; color: var(--muted); margin-top: 8px;
+  line-height: 1.6;
+}
+
+.hidden { display: none; }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="back-link"><a href="../index.html">← 返回游戏</a> <a href="hub.html" style="margin-left:10px;">🏠 总控台</a></div>
+  <h1>📤 分享你的长安结局</h1>
+  <p class="sub">通关后在这里生成专属结局卡片</p>
+
+  <div class="card-preview" id="shareCard">
+    <div class="card-corner"></div>
+    <div class="card-header">
+      <div class="title-card">🏮 长安十二时辰</div>
+      <div class="subtitle-card">灯火如昼 · 元月十四</div>
+    </div>
+    <div class="card-body" id="cardBody">
+      <div style="text-align:center;color:var(--muted);font-size:14px;">
+        游戏存档数据加载中…<br>
+        <span style="font-size:11px;">请先完成一轮游戏，即可生成分享卡片</span>
+      </div>
+    </div>
+    <div class="card-footer">may the light guide you · novel2game</div>
+  </div>
+
+  <div class="controls">
+    <label>你的名字（选填）</label>
+    <input type="text" id="playerName" placeholder="匿名旅人" maxlength="12">
+    <button id="saveBtn">💾 保存为图片</button>
+  </div>
+
+  <div id="noData" class="hidden share-hint">
+    尚未检测到游戏存档。请先玩一轮《长安十二时辰》，通关后回到此页生成分享卡片。
+  </div>
+  <div class="share-hint">
+    卡片会自动读取你的最新游戏结果。保存图片后可分享到小红书、微信等社交平台。
+  </div>
+</div>
+
+<script>
+(function() {
+  const SAVE_KEY = 'changan-save-v1';
+  const cardBody = document.getElementById('cardBody');
+  const noData = document.getElementById('noData');
+  const saveBtn = document.getElementById('saveBtn');
+  const nameInput = document.getElementById('playerName');
+
+  function loadGameData() {
+    try {
+      const raw = localStorage.getItem(SAVE_KEY);
+      if (!raw) return null;
+      const s = JSON.parse(raw);
+      if (!s || !s.mbtiRaw) return null;
+      return s;
+    } catch(e) { return null; }
+  }
+
+  // MBTI calculation (simplified from main.js)
+  const MBTI_DIMS = [
+    { key: 'EI', question: '能量来源', left: 'E', right: 'I', leftName: '外向', rightName: '内向' },
+    { key: 'SN', question: '认知方式', left: 'S', right: 'N', leftName: '实感', rightName: '直觉' },
+    { key: 'TF', question: '决策依据', left: 'T', right: 'F', leftName: '理性', rightName: '情感' },
+    { key: 'JP', question: '生活态度', left: 'J', right: 'P', leftName: '判断', rightName: '感知' },
+  ];
+
+  const MBTI_TYPES = {
+    'INTJ':{name:'建筑师',title:'富有想象力的战略家',desc:'一切皆在计划之中'},
+    'INTP':{name:'逻辑学家',title:'求知若渴的创新者',desc:'世界是待解的逻辑题'},
+    'ENTJ':{name:'指挥官',title:'大胆的领导者',desc:'目标明确，一往无前'},
+    'ENTP':{name:'辩论家',title:'聪明的探索者',desc:'没有打不破的框架'},
+    'INFJ':{name:'提倡者',title:'安静的引路人',desc:'看见别人看不见的路'},
+    'INFP':{name:'调停者',title:'理想主义的诗人',desc:'心中自有天地'},
+    'ENFJ':{name:'主人公',title:'有魅力的领袖',desc:'让每个人成为更好的自己'},
+    'ENFP':{name:'竞选者',title:'自由的追梦人',desc:'生活是一场冒险'},
+    'ISTJ':{name:'物流师',title:'可靠的守护者',desc:'说到做到，使命必达'},
+    'ISFJ':{name:'守卫者',title:'温暖的守护者',desc:'默默守护一切'},
+    'ESTJ':{name:'总经理',title:'天生的管理者',desc:'秩序就是一切'},
+    'ESFJ':{name:'执政官',title:'热心的东道主',desc:'没有人是孤岛'},
+    'ISTP':{name:'鉴赏家',title:'冷静的实干家',desc:'手上的功夫不会骗人'},
+    'ISFP':{name:'探险家',title:'敏感的艺术家',desc:'美在细节中'},
+    'ESTP':{name:'企业家',title:'精力充沛的实干家',desc:'行动起来就对了'},
+    'ESFP':{name:'表演者',title:'自发的表演者',desc:'生活就是舞台'},
+  };
+
+  function computeType(raw) {
+    let type = '';
+    MBTI_DIMS.forEach(d => {
+      const val = raw[d.key] || 0;
+      type += val >= 0 ? d.left : d.right;
+    });
+    return type;
+  }
+
+  function getEndingTag(sceneId) {
+    const tagMap = {
+      'e_hero': '以身许国', 'e_people': '众望所归',
+      'e_alone': '独行人', 'e_darkness': '玉石俱焚',
+    };
+    return tagMap[sceneId] || '长安旅人';
+  }
+
+  function getEndingDesc(tag) {
+    const descMap = {
+      '以身许国': '你孤身闯入龙潭，以自己的方式守护了长安。那座城欠你一条命，却欠了你一辈子的安宁。',
+      '众望所归': '你赢得了所有人的信任。长安因此得救，而你也从死囚变成了这座城的英雄。',
+      '独行人': '你没有得到足够的支持，却依然独自扛下了一切。死而无憾——但你发现自己还活着。为什么活着，才是你要去找的答案。',
+      '玉石俱焚': '灯楼上的选择，走向了不可回头的深渊。有些东西碎了，就再也拼不回来了。',
+      '长安旅人': '你走过长安的十二个时辰。这座城记住了你的名字。',
+    };
+    return descMap[tag] || '长安十二时辰，每一步都是你自己的选择。';
+  }
+
+  function renderCard(data) {
+    const playerName = nameInput.value.trim() || '匿名旅人';
+    const raw = data.mbtiRaw || {};
+    const type = computeType(raw);
+    const info = MBTI_TYPES[type] || { name: '未知', title: '' };
+    const endingTag = getEndingTag(data.sceneId);
+    const choices = data.choicesMade || 0;
+    const allies = data.trust ? Object.values(data.trust).filter(v => v >= 70).length : 0;
+
+    cardBody.innerHTML = `
+      <div class="ending-type">「${endingTag}」</div>
+      <div class="ending-sub">${getEndingDesc(endingTag)}</div>
+
+      <div class="mbti-display">
+        <div class="mbti-letters">${type}</div>
+        <div class="mbti-name-card">${info.name}<br><span style="font-size:11px;color:#9a8a72">${info.title}</span></div>
+      </div>
+
+      <div class="match-character">
+        <div class="label">—— 与你最相似的书中人物 ——</div>
+        <div class="name">张小敬</div>
+        <div class="alias">五尊阎罗 · 不良帅</div>
+      </div>
+
+      <div class="stats-row">
+        <div class="item"><div class="num">${choices}</div><div class="lbl">关键抉择</div></div>
+        <div class="item"><div class="num">${allies}</div><div class="lbl">同路人</div></div>
+      </div>
+
+      <div style="text-align:center;font-size:11px;color:#9a8a72;margin-top:8px;">
+        ${playerName} · 长安十二时辰
+      </div>
+    `;
+  }
+
+  function updateCard() {
+    const data = loadGameData();
+    if (!data) {
+      noData.classList.remove('hidden');
+      cardBody.innerHTML = `<div style="text-align:center;color:var(--muted);font-size:14px;">
+        <div style="font-size:40px;margin-bottom:12px;">🎮</div>
+        还没有游戏存档<br>
+        <span style="font-size:11px;">请先玩一轮《长安十二时辰》，通关后回到此页</span>
+      </div>`;
+      return;
+    }
+    noData.classList.add('hidden');
+    renderCard(data);
+  }
+
+  // Save as image using canvas (client-side)
+  saveBtn.addEventListener('click', function() {
+    const card = document.getElementById('shareCard');
+    // Use html2canvas approach — create a canvas from the card
+    const canvas = document.createElement('canvas');
+    const W = 480 * 2, H = 640 * 2;
+    canvas.width = W;
+    canvas.height = H;
+    const ctx = canvas.getContext('2d');
+
+    // Background
+    const grad = ctx.createLinearGradient(0, 0, W, H);
+    grad.addColorStop(0, '#1a1210');
+    grad.addColorStop(0.5, '#2b1a10');
+    grad.addColorStop(1, '#1a1210');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, W, H);
+
+    // Border
+    ctx.strokeStyle = '#e0b657';
+    ctx.lineWidth = 4;
+    ctx.strokeRect(4, 4, W - 8, H - 8);
+
+    // Decorative circles
+    ctx.strokeStyle = 'rgba(212,162,76,0.10)';
+    ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.arc(W - 40, -40, 200, 0, Math.PI * 2); ctx.stroke();
+    ctx.beginPath(); ctx.arc(-40, H + 40, 160, 0, Math.PI * 2); ctx.stroke();
+
+    // Lantern emoji (decorative)
+    ctx.font = '60px serif';
+    ctx.fillStyle = 'rgba(212,162,76,0.15)';
+    ctx.fillText('🏮', W - 70, 60);
+
+    // Header
+    ctx.textAlign = 'center';
+    ctx.font = '28px "Songti SC", "STSong", serif';
+    ctx.fillStyle = '#e0b657';
+    ctx.fillText('🏮 长安十二时辰', W/2, 90);
+    ctx.font = '20px "Songti SC", "STSong", serif';
+    ctx.fillStyle = '#9a8a72';
+    ctx.fillText('灯火如昼 · 元月十四', W/2, 120);
+
+    ctx.beginPath();
+    ctx.moveTo(80, 140); ctx.lineTo(W - 80, 140);
+    ctx.strokeStyle = '#4a3a28';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+
+    // Body content from card
+    const name = nameInput.value.trim() || '匿名旅人';
+    const data = loadGameData();
+    if (data) {
+      const raw = data.mbtiRaw || {};
+      const type = computeType(raw);
+      const info = MBTI_TYPES[type] || {};
+      const endingTag = getEndingTag(data.sceneId);
+      const choices = data.choicesMade || 0;
+      const allies = data.trust ? Object.values(data.trust).filter(v => v >= 70).length : 0;
+
+      // Ending type
+      ctx.font = 'bold 48px "Songti SC", "STSong", serif';
+      ctx.fillStyle = '#e0b657';
+      ctx.fillText(`「${endingTag}」`, W/2, 210);
+
+      // Description
+      const desc = getEndingDesc(endingTag);
+      ctx.font = '24px "Songti SC", "STSong", serif';
+      ctx.fillStyle = '#e8dcc8';
+      wrapText(ctx, desc, W/2, 265, W - 80, 36, 2);
+
+      // MBTI display
+      ctx.font = 'bold 64px "Songti SC", "STSong", serif';
+      ctx.fillStyle = '#e0b657';
+      ctx.fillText(type, W/2 - 80, 400);
+      ctx.font = '28px "Songti SC", "STSong", serif';
+      ctx.textAlign = 'left';
+      ctx.fillStyle = '#9a8a72';
+      ctx.fillText(info.name || '', W/2 + 20, 385);
+      ctx.font = '20px "Songti SC", "STSong", serif';
+      ctx.fillText(info.title || '', W/2 + 20, 415);
+
+      // Match character
+      ctx.textAlign = 'center';
+      ctx.fillStyle = 'rgba(212,162,76,0.08)';
+      ctx.fillRect(W/2 - 160, 450, 320, 70);
+      ctx.strokeStyle = 'rgba(212,162,76,0.2)';
+      ctx.lineWidth = 1;
+      ctx.strokeRect(W/2 - 160, 450, 320, 70);
+
+      ctx.font = '20px "Songti SC", "STSong", serif';
+      ctx.fillStyle = '#9a8a72';
+      ctx.fillText('与你最相似的书中人物', W/2, 480);
+      ctx.font = '28px "Songti SC", "STSong", serif';
+      ctx.fillStyle = '#e0b657';
+      ctx.fillText('张小敬 · 五尊阎罗', W/2, 515);
+
+      // Stats
+      const statsY = 560;
+      ctx.font = '18px "Songti SC", "STSong", serif';
+      ctx.fillStyle = '#9a8a72';
+      ctx.fillText('关键抉择', W/2 - 100, statsY + 30);
+      ctx.fillText('同路人', W/2 + 100, statsY + 30);
+      ctx.font = 'bold 36px "Songti SC", "STSong", serif';
+      ctx.fillStyle = '#e0b657';
+      ctx.fillText(String(choices), W/2 - 100, statsY);
+      ctx.fillText(String(allies), W/2 + 100, statsY);
+
+      // Player name
+      ctx.textAlign = 'center';
+      ctx.font = '22px "Songti SC", "STSong", serif';
+      ctx.fillStyle = '#9a8a72';
+      ctx.fillText(`${name} · 长安十二时辰`, W/2, 620);
+    }
+
+    // Footer
+    ctx.font = '18px "Songti SC", "STSong", serif';
+    ctx.fillStyle = '#9a8a72';
+    ctx.fillText('may the light guide you · novel2game', W/2, H - 30);
+
+    // Download
+    const link = document.createElement('a');
+    link.download = `changan-ending-${Date.now()}.png`;
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+  });
+
+  function wrapText(ctx, text, x, y, maxWidth, lineHeight, maxLines) {
+    const chars = text.split('');
+    let line = '';
+    let lineCount = 0;
+    let currentY = y;
+    for (const ch of chars) {
+      const testLine = line + ch;
+      const metrics = ctx.measureText(testLine);
+      if (metrics.width > maxWidth && line) {
+        ctx.fillText(line, x, currentY);
+        line = ch;
+        currentY += lineHeight;
+        lineCount++;
+        if (lineCount >= maxLines) return;
+      } else {
+        line = testLine;
+      }
+    }
+    if (lineCount < maxLines) ctx.fillText(line, x, currentY);
+  }
+
+  nameInput.addEventListener('input', updateCard);
+  updateCard();
+})();
+</script>
+</body>
+</html>

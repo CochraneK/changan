@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>长安十二时辰 · 场景画廊</title>
+<link rel="icon" href="data:,">
+<style>
+:root {
+  --bg: #14100e; --bg2: #1d1712; --panel: #221b15;
+  --line: #4a3a28; --text: #e8dcc8; --muted: #9a8a72;
+  --accent: #d4a24c; --gold: #e0b657;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: var(--bg); color: var(--text);
+  font-family: "Songti SC","STSong","SimSun","Noto Serif CJK SC",serif;
+  font-size: 14px; padding: 30px 20px 60px;
+}
+.container { max-width: 1100px; margin: 0 auto; }
+
+header {
+  text-align: center; border-bottom: 1px solid var(--line);
+  padding-bottom: 24px; margin-bottom: 32px;
+}
+header h1 { font-size: 26px; color: var(--gold); letter-spacing: 4px; }
+header p { color: var(--muted); font-size: 13px; margin-top: 6px; }
+header .back { margin-top: 14px; }
+header .back a {
+  color: var(--accent); text-decoration: none;
+  border: 1px solid var(--line); padding: 5px 14px; border-radius: 3px;
+  font-size: 12px; margin: 0 4px;
+}
+
+.scene-list { display: flex; flex-direction: column; gap: 28px; }
+
+.scene-card {
+  background: var(--panel); border: 1px solid var(--line);
+  border-radius: 8px; overflow: hidden;
+  display: grid; grid-template-columns: 1fr 1fr;
+  min-height: 280px;
+}
+@media (max-width: 700px) { .scene-card { grid-template-columns: 1fr; } }
+
+.scene-visual {
+  background: var(--bg2);
+  display: flex; align-items: center; justify-content: center;
+  padding: 20px; min-height: 260px;
+}
+.scene-visual svg { width: 100%; height: auto; max-height: 260px; }
+
+.scene-info {
+  padding: 22px 24px;
+  display: flex; flex-direction: column;
+  justify-content: center;
+}
+.scene-info .hour-tag {
+  display: inline-block; font-size: 11px; padding: 2px 10px;
+  border: 1px solid var(--accent); color: var(--accent);
+  border-radius: 2px; letter-spacing: 2px; margin-bottom: 10px;
+  width: fit-content;
+}
+.scene-info h3 { font-size: 18px; color: var(--gold); margin-bottom: 6px; }
+.scene-info .place { font-size: 13px; color: var(--muted); margin-bottom: 10px; }
+.scene-info .desc { font-size: 12px; line-height: 1.8; color: var(--text); }
+.scene-info .meta { font-size: 11px; color: var(--muted); margin-top: 10px; }
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>🖼️ 长安 · 场景画廊</h1>
+    <p>十二时辰 × 故事地标 · SVG 场景插画</p>
+    <div class="back">
+      <a href="../index.html">← 返回游戏</a>
+      <a href="hub.html">🏠 项目总控台</a>
+    </div>
+  </header>
+
+  <div class="scene-list" id="sceneList"></div>
+</div>
+
+<script type="module">
+import { scenes } from '../src/data/scenes.js';
+import { hours } from '../src/data/characters.js';
+
+const hourMap = {};
+hours.forEach(h => { hourMap[h.key] = h; });
+
+// Scene visual generators — SVG scenes
+const sceneVisuals = {
+  // 死牢
+  start: () => svgScene('dark', '子时 · 死牢', '铁栏与火炬', [
+    { type: 'bar', x: 80, y: 80, w: 8, h: 160, color: '#4a3a28' },
+    { type: 'bar', x: 95, y: 80, w: 8, h: 160, color: '#4a3a28' },
+    { type: 'bar', x: 170, y: 60, w: 6, h: 180, color: '#4a3a28' },
+    { type: 'bar', x: 185, y: 60, w: 6, h: 180, color: '#4a3a28' },
+    { type: 'circle', cx: 260, cy: 50, r: 18, color: '#d48a3c', glow: true },
+    { type: 'rect', x: 248, y: 68, w: 24, h: 8, color: '#d4a24c' },
+    { type: 'bar', x: 20, y: 240, w: 280, h: 3, color: '#3a2a18' },
+    { type: 'bar', x: 60, y: 90, w: 2, h: 120, color: '#6a5a48' },
+    { type: 'bar', x: 120, y: 90, w: 2, h: 120, color: '#6a5a48' },
+    { type: 'bar', x: 180, y: 80, w: 2, h: 130, color: '#6a5a48' },
+  ]),
+
+  // 靖安司
+  s1_meet: () => svgScene('warm', '靖安司 · 内堂', '案牍与沙盘', [
+    { type: 'rect', x: 10, y: 30, w: 300, h: 110, color: '#2a1a0a', rx: 3 },
+    { type: 'rect', x: 15, y: 35, w: 40, h: 50, color: '#3a2a18', rx: 2 },
+    { type: 'rect', x: 60, y: 35, w: 40, h: 50, color: '#3a2a18', rx: 2 },
+    { type: 'rect', x: 105, y: 35, w: 40, h: 50, color: '#3a2a18', rx: 2 },
+    // 沙盘
+    { type: 'rect', x: 90, y: 100, w: 140, h: 30, color: '#4a3a28', rx: 2 },
+    { type: 'circle', cx: 140, cy: 115, r: 4, color: '#d4a24c' },
+    { type: 'circle', cx: 180, cy: 115, r: 4, color: '#d4a24c' },
+    { type: 'circle', cx: 160, cy: 115, r: 3, color: '#b8452f' },
+    // 灯笼
+    { type: 'circle', cx: 40, cy: 10, r: 12, color: '#d4a24c', glow: true },
+    { type: 'circle', cx: 160, cy: 8, r: 12, color: '#d4a24c', glow: true },
+    { type: 'circle', cx: 280, cy: 10, r: 12, color: '#d4a24c', glow: true },
+    // 人物剪影
+    { type: 'person', x: 100, y: 140, color: '#5a4a38' },
+    { type: 'person', x: 200, y: 140, color: '#4a3a28' },
+  ]),
+
+  // 西市
+  h_chen: () => svgScene('warm', '西市 · 胡商云集', '市集与驼队', [
+    { type: 'rect', x: 0, y: 160, w: 320, h: 80, color: '#3a2a18' },
+    { type: 'rect', x: 5, y: 80, w: 30, h: 80, color: '#4a3a28', rx: 2 },
+    { type: 'rect', x: 40, y: 85, w: 30, h: 75, color: '#4a3a28', rx: 2 },
+    { type: 'rect', x: 100, y: 80, w: 40, h: 80, color: '#5a4a38', rx: 2 },
+    { type: 'rect', x: 180, y: 75, w: 40, h: 85, color: '#4a3a28', rx: 2 },
+    { type: 'rect', x: 250, y: 80, w: 50, h: 80, color: '#5a4a38', rx: 2 },
+    // 篷布
+    { type: 'polygon', points: '100,80 140,80 130,60 110,60', color: '#d4a24c', opacity: 0.3 },
+    { type: 'polygon', points: '180,75 220,75 210,55 190,55', color: '#d4a24c', opacity: 0.3 },
+    // 人物
+    { type: 'person', x: 140, y: 145, color: '#6a5a48' },
+    { type: 'person', x: 160, y: 145, color: '#7a6a58' },
+    { type: 'person', x: 200, y: 148, color: '#5a4a38' },
+    // 骆驼
+    { type: 'circle', cx: 300, cy: 135, r: 10, color: '#8a7a68' },
+    { type: 'circle', cx: 310, cy: 135, r: 8, color: '#8a7a68' },
+    { type: 'rect', x: 295, y: 145, w: 22, h: 15, color: '#8a7a68' },
+    // 灯笼
+    { type: 'circle', cx: 40, cy: 40, r: 10, color: '#d4a24c', glow: true },
+    { type: 'circle', cx: 160, cy: 35, r: 10, color: '#d4a24c', glow: true },
+    { type: 'circle', cx: 280, cy: 40, r: 10, color: '#d4a24c', glow: true },
+  ]),
+
+  // 望楼
+  h_wei: () => svgScene('dark', '长安 · 望楼', '旗语与灯火', [
+    // 塔身
+    { type: 'rect', x: 140, y: 40, w: 40, h: 180, color: '#3a2a18' },
+    // 基座
+    { type: 'rect', x: 120, y: 170, w: 80, h: 20, color: '#4a3a28' },
+    // 望楼顶
+    { type: 'rect', x: 120, y: 30, w: 80, h: 20, color: '#4a3a28', rx: 2 },
+    { type: 'rect', x: 110, y: 22, w: 100, h: 10, color: '#3a2a18' },
+    // 旗杆
+    { type: 'bar', x: 160, y: 5, w: 3, h: 20, color: '#5a4a38' },
+    // 旗帜
+    { type: 'polygon', points: '163,5 163,25 200,15', color: '#b8452f', opacity: 0.7 },
+    // 灯笼
+    { type: 'circle', cx: 160, cy: 15, r: 5, color: '#d4a24c', glow: true },
+    // 背景灯笼
+    { type: 'circle', cx: 30, cy: 60, r: 8, color: '#d4a24c', opacity: 0.3, glow: true },
+    { type: 'circle', cx: 290, cy: 50, r: 8, color: '#d4a24c', opacity: 0.3, glow: true },
+    { type: 'circle', cx: 50, cy: 120, r: 6, color: '#d4a24c', opacity: 0.2, glow: true },
+    { type: 'circle', cx: 270, cy: 100, r: 6, color: '#d4a24c', opacity: 0.2, glow: true },
+    // 星空
+    { type: 'circle', cx: 40, cy: 20, r: 1.5, color: '#e8dcc8', opacity: 0.5 },
+    { type: 'circle', cx: 100, cy: 15, r: 1, color: '#e8dcc8', opacity: 0.3 },
+    { type: 'circle', cx: 250, cy: 25, r: 1.5, color: '#e8dcc8', opacity: 0.5 },
+    { type: 'circle', cx: 280, cy: 15, r: 1, color: '#e8dcc8', opacity: 0.3 },
+  ]),
+
+  // 平康坊
+  h_chou: () => svgScene('warm', '平康坊 · 暗市', '地下世界', [
+    // 地下空间
+    { type: 'rect', x: 0, y: 0, w: 320, h: 200, color: '#1a0a00' },
+    // 拱形顶
+    { type: 'path', d: 'M 0,30 Q 160,-20 320,30', fill: '#2a1a0a', stroke: 'none' },
+    // 台子
+    { type: 'rect', x: 120, y: 130, w: 80, h: 30, color: '#4a3a28' },
+    // 葛老剪影
+    { type: 'person', x: 148, y: 105, color: '#5a4a38' },
+    // 火把
+    { type: 'circle', cx: 50, cy: 45, r: 12, color: '#d48a3c', glow: true },
+    { type: 'circle', cx: 270, cy: 45, r: 12, color: '#d48a3c', glow: true },
+    // 暗影人物
+    { type: 'person', x: 60, y: 135, color: '#3a2a18', opacity: 0.5 },
+    { type: 'person', x: 240, y: 138, color: '#3a2a18', opacity: 0.5 },
+    // 灯笼串
+    { type: 'circle', cx: 30, cy: 100, r: 5, color: '#d4a24c', opacity: 0.3 },
+    { type: 'circle', cx: 60, cy: 85, r: 5, color: '#d4a24c', opacity: 0.3 },
+    { type: 'circle', cx: 90, cy: 70, r: 5, color: '#d4a24c', opacity: 0.3 },
+    { type: 'circle', cx: 230, cy: 70, r: 5, color: '#d4a24c', opacity: 0.3 },
+    { type: 'circle', cx: 260, cy: 85, r: 5, color: '#d4a24c', opacity: 0.3 },
+    { type: 'circle', cx: 290, cy: 100, r: 5, color: '#d4a24c', opacity: 0.3 },
+  ]),
+
+  // 灯楼
+  e_hero: () => svgScene('warm', '花萼楼 · 灯会', '万家灯火', [
+    // 楼阁
+    { type: 'rect', x: 100, y: 40, w: 120, h: 120, color: '#3a2a18' },
+    { type: 'rect', x: 80, y: 30, w: 160, h: 15, color: '#4a3a28' },
+    { type: 'rect', x: 90, y: 140, w: 140, h: 10, color: '#4a3a28' },
+    // 屋顶
+    { type: 'polygon', points: '60,30 160,5 260,30', color: '#5a3a18' },
+    // 大灯笼
+    { type: 'circle', cx: 160, cy: 80, r: 25, color: '#d4a24c', glow: true },
+    { type: 'circle', cx: 160, cy: 80, r: 15, color: '#e8b84c', glow: true },
+    // 灯笼阵列
+    { type: 'circle', cx: 25, cy: 160, r: 8, color: '#d4a24c', opacity: 0.6, glow: true },
+    { type: 'circle', cx: 75, cy: 160, r: 8, color: '#d4a24c', opacity: 0.6, glow: true },
+    { type: 'circle', cx: 125, cy: 160, r: 8, color: '#d4a24c', opacity: 0.6, glow: true },
+    { type: 'circle', cx: 175, cy: 160, r: 8, color: '#d4a24c', opacity: 0.6, glow: true },
+    { type: 'circle', cx: 225, cy: 160, r: 8, color: '#d4a24c', opacity: 0.6, glow: true },
+    { type: 'circle', cx: 275, cy: 160, r: 8, color: '#d4a24c', opacity: 0.6, glow: true },
+    // 人物剪影
+    { type: 'person', x: 120, y: 125, color: '#5a4a38' },
+    { type: 'person', x: 160, y: 128, color: '#5a4a38' },
+    { type: 'person', x: 200, y: 125, color: '#5a4a38' },
+    // 烟花
+    { type: 'circle', cx: 50, cy: 30, r: 6, color: '#b8452f', glow: true },
+    { type: 'circle', cx: 270, cy: 20, r: 5, color: '#6b8e5a', glow: true },
+  ]),
+
+  // 胡饼摊 (消遣场景)
+  h_mao_snack: () => svgScene('warm', '街头 · 胡饼摊', '烟火气', [
+    { type: 'rect', x: 90, y: 130, w: 60, h: 20, color: '#4a3a28' },
+    { type: 'circle', cx: 120, cy: 120, r: 18, color: '#d48a3c' }, // 炉子
+    { type: 'circle', cx: 120, cy: 120, r: 10, color: '#d4a24c' }, // 火光
+    { type: 'rect', x: 80, y: 150, w: 80, h: 5, color: '#3a2a18' }, // 桌案
+    { type: 'circle', cx: 100, cy: 143, r: 6, color: '#d48a3c' }, // 胡饼1
+    { type: 'circle', cx: 120, cy: 143, r: 6, color: '#d48a3c' }, // 胡饼2
+    { type: 'circle', cx: 140, cy: 143, r: 6, color: '#d48a3c' }, // 胡饼3
+    { type: 'person', x: 70, y: 140, color: '#5a4a38' }, // 摊主
+    // 背景建筑
+    { type: 'rect', x: 10, y: 60, w: 50, h: 100, color: '#3a2a18', rx: 2 },
+    { type: 'rect', x: 200, y: 50, w: 50, h: 110, color: '#3a2a18', rx: 2 },
+    // 灯笼
+    { type: 'circle', cx: 35, cy: 50, r: 8, color: '#d4a24c', glow: true },
+    { type: 'circle', cx: 225, cy: 40, r: 8, color: '#d4a24c', glow: true },
+  ]),
+
+  // 酉时徐宾 (消遣场景)
+  h_you_xubin: () => svgScene('warm', '靖安司 · 案牍库', '数据与纸墨', [
+    { type: 'rect', x: 0, y: 0, w: 320, h: 200, color: '#1d1712' },
+    // 书架
+    { type: 'rect', x: 5, y: 20, w: 55, h: 130, color: '#2a1a0a', rx: 2 },
+    { type: 'rect', x: 67, y: 20, w: 55, h: 130, color: '#2a1a0a', rx: 2 },
+    { type: 'rect', x: 129, y: 20, w: 55, h: 130, color: '#2a1a0a', rx: 2 },
+    { type: 'rect', x: 191, y: 20, w: 55, h: 130, color: '#2a1a0a', rx: 2 },
+    { type: 'rect', x: 253, y: 20, w: 55, h: 130, color: '#2a1a0a', rx: 2 },
+    // 卷轴
+    { type: 'rect', x: 10, y: 25, w: 46, h: 8, color: '#4a3a28' },
+    { type: 'rect', x: 10, y: 38, w: 46, h: 8, color: '#4a3a28' },
+    { type: 'rect', x: 10, y: 51, w: 46, h: 8, color: '#4a3a28' },
+    { type: 'rect', x: 72, y: 25, w: 46, h: 8, color: '#4a3a28' },
+    { type: 'rect', x: 72, y: 38, w: 46, h: 8, color: '#4a3a28' },
+    { type: 'rect', x: 72, y: 51, w: 46, h: 8, color: '#4a3a28' },
+    { type: 'rect', x: 134, y: 25, w: 46, h: 8, color: '#4a3a28' },
+    { type: 'rect', x: 134, y: 38, w: 46, h: 8, color: '#4a3a28' },
+    { type: 'rect', x: 134, y: 51, w: 46, h: 8, color: '#4a3a28' },
+    { type: 'rect', x: 196, y: 25, w: 46, h: 8, color: '#4a3a28' },
+    { type: 'rect', x: 196, y: 38, w: 46, h: 8, color: '#4a3a28' },
+    { type: 'rect', x: 196, y: 51, w: 46, h: 8, color: '#4a3a28' },
+    { type: 'rect', x: 258, y: 25, w: 46, h: 8, color: '#4a3a28' },
+    { type: 'rect', x: 258, y: 38, w: 46, h: 8, color: '#4a3a28' },
+    { type: 'rect', x: 258, y: 51, w: 46, h: 8, color: '#4a3a28' },
+    // 桌子
+    { type: 'rect', x: 60, y: 140, w: 200, h: 15, color: '#4a3a28' },
+    // 人物
+    { type: 'person', x: 100, y: 130, color: '#5a4a38' },
+    { type: 'person', x: 200, y: 130, color: '#5a4a38' },
+    // 油灯
+    { type: 'circle', cx: 150, cy: 115, r: 8, color: '#d4a24c', glow: true },
+    // 纸卷
+    { type: 'rect', x: 80, y: 105, w: 40, h: 4, color: '#8a7a68', rx: 1 },
+    { type: 'rect', x: 130, y: 110, w: 55, h: 4, color: '#8a7a68', rx: 1 },
+  ]),
+};
+
+function svgScene(theme, title, subtitle, elements) {
+  const isDark = theme === 'dark';
+  const bg = isDark ? '#1d1712' : '#2b2219';
+  const textColor = '#9a8a72';
+
+  let svg = `<svg viewBox="0 0 320 200" xmlns="http://www.w3.org/2000/svg">
+    <rect width="320" height="200" fill="${bg}" rx="4"/>
+    <text x="160" y="190" text-anchor="middle" fill="${textColor}" font-size="10" font-family="inherit">${escapeXml(title)}</text>
+    <text x="160" y="202" text-anchor="middle" fill="${textColor}" font-size="8" font-family="inherit" opacity="0.6">${escapeXml(subtitle)}</text>`;
+
+  const uniqueElements = deduplicateElements(elements);
+  uniqueElements.forEach(el => {
+    if (el.type === 'bar') {
+      svg += `<rect x="${el.x}" y="${el.y}" width="${el.w || 3}" height="${el.h || 100}" fill="${el.color}" opacity="${el.opacity || 1}" rx="1"/>`;
+    } else if (el.type === 'circle') {
+      const glow = el.glow ? `filter="url(#glow)"` : '';
+      svg += `<circle cx="${el.cx}" cy="${el.cy}" r="${el.r}" fill="${el.color}" opacity="${el.opacity || 1}" ${glow}/>`;
+    } else if (el.type === 'rect') {
+      svg += `<rect x="${el.x}" y="${el.y}" width="${el.w}" height="${el.h}" fill="${el.color}" opacity="${el.opacity || 1}" rx="${el.rx || 0}"/>`;
+    } else if (el.type === 'polygon') {
+      svg += `<polygon points="${el.points}" fill="${el.color}" opacity="${el.opacity || 1}"/>`;
+    } else if (el.type === 'path') {
+      svg += `<path d="${el.d}" fill="${el.fill}" stroke="${el.stroke || 'none'}" opacity="${el.opacity || 1}"/>`;
+    } else if (el.type === 'person') {
+      // Simplified person silhouette
+      svg += `<ellipse cx="${el.x}" cy="${el.y - 22}" rx="6" ry="8" fill="${el.color}" opacity="${el.opacity || 1}"/>
+        <path d="M ${el.x - 8},${el.y - 12} Q ${el.x},${el.y - 6} ${el.x + 8},${el.y - 12} L ${el.x + 10},${el.y} L ${el.x - 10},${el.y} Z" fill="${el.color}" opacity="${el.opacity || 1}"/>`;
+    }
+  });
+
+  svg += `</svg>`;
+  return svg;
+}
+
+function deduplicateElements(elements) {
+  // Some elements may be generated dynamically (e.g. loops) — flatten them
+  const result = [];
+  elements.forEach(el => {
+    if (Array.isArray(el)) {
+      result.push(...el);
+    } else {
+      result.push(el);
+    }
+  });
+  return result;
+}
+
+function escapeXml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// Generate scenes list
+function getSceneDescription(sceneId) {
+  const descriptions = {
+    start: '张小敬在死牢中等待秋后问斩。李必派人深夜提调死囚，改变命运的抉择由此开始。',
+    s1_meet: '靖安司内案牍如山，少年司丞李必立于沙盘前，以"免死"为筹码，请死囚张小敬守护长安。',
+    h_chou: '平康坊的地下暗市，葛老坐镇于此。要在这里得到线索，得先和他做一笔交易。',
+    h_yin: '寅时的长安街巷幽暗寂静。你跟踪一名可疑人物穿行坊间，每一步都可能踩到陷阱。',
+    h_mao: '日出时分，长安苏醒。狼卫的踪迹在西市出现，你面临追查、跟踪或打探的三叉路口。',
+    h_chen: '西市开市，胡商云集。你混入市集人流中搜寻线索，各色人等在此汇聚。',
+    h_si: '巳时的靖安司，大案牍术全速运转。数据不会骗人——但解读数据的人会。',
+    h_wu: '午时日中，长安城炙热。龙波的人就在附近，你们之间只差一个照面。',
+    h_wei: '望楼的旗语在阳光下翻飞。依靠长安城上空的信号网络，信息比刀剑更快。',
+    h_shen: '申时，太阳西斜。追查的线索开始收束，真正的敌人渐渐浮出水面。',
+    h_you: '酉时日入，长安城灯火渐起。鱼肠的刀在暗处等待，这一战避无可避。',
+    h_xu: '夜色已深，靖安司的谋划到了最后关头。李必和张小敬各自做出了选择。',
+    h_hai: '亥时·人定。长安城中万家灯火，上元灯会进入高潮。四个结局的岔路口就在眼前。',
+    e_hero: '你以身许国，孤身闯入龙潭。长安的灯依然亮着，只是少了一个曾经守护它的人。',
+    e_people: '你赢得了所有人的信任。同路人齐聚灯楼，众志成城，长安因此得救。',
+    e_alone: '你没有得到足够的支持。最终你独自担下一切，死而无憾，却也知道自己还活着——为了什么。',
+    e_darkness: '灯楼上的选择，走向了不可回头的深渊。长安的夜，比任何人的死都更长。',
+    h_zi2_gela: '子时 · 葛老的暗室。你坐下来和这位平康坊的主人聊起了长安的规矩——他的规矩。',
+    h_mao_snack: '卯时 · 胡饼摊。烟火气里，张小敬掏钱买两个饼，和摊主闲聊两句。长安的味道还在。',
+    h_wei_roof: '未时 · 望楼之上。风很大，视野开阔。你站在长安城最高的地方，俯瞰这座城。',
+    h_you_xubin: '酉时 · 靖安司案牍库。徐宾抱着一摞卷轴过来，想跟你聊聊大案牍术的最新发现。',
+  };
+  return descriptions[sceneId] || '长安十二时辰中的一个瞬间。';
+}
+
+// Deduplicate scenes by hour/place
+const seenScenes = new Set();
+const sceneEntries = Object.entries(scenes).filter(([id, sc]) => {
+  if (!sc || sc.ending === undefined) return true;
+  if (sc.ending || sc.choices || isPassage(sc) || sc.text) {
+    const key = sc.hour + '|' + sc.place;
+    if (seenScenes.has(key) && !sc.ending) return false;
+    seenScenes.add(key);
+    return true;
+  }
+  return false;
+});
+
+const list = document.getElementById('sceneList');
+
+// Sort by hour
+const hourOrder = hours.map(h => h.key);
+sceneEntries.sort((a, b) => {
+  const ia = hourOrder.indexOf(a[1].hour);
+  const ib = hourOrder.indexOf(b[1].hour);
+  if (ia !== ib) return ia - ib;
+  return 0;
+});
+
+sceneEntries.forEach(([id, sc]) => {
+  if (!sc.choices && !sc.ending && !isPassage(sc) && !sc.text && sc.hour) {
+    return; // Skip route-only nodes
+  }
+  const hour = hourMap[sc.hour];
+  const visualFn = sceneVisuals[id] || sceneVisuals[sc.hour ? 'start' : 'e_hero'] || (() => svgScene('dark', sc.place || id, '', []));
+  const visual = visualFn();
+  const desc = getSceneDescription(id);
+
+  const card = document.createElement('div');
+  card.className = 'scene-card';
+  card.innerHTML = `
+    <div class="scene-visual">${visual}</div>
+    <div class="scene-info">
+      <div class="hour-tag">${hour ? hour.name + ' · ' + hour.label : ''}</div>
+      <h3>${esc(sc.place || '—')}</h3>
+      <div class="place">${sc.ending ? '【结局】' : isPassage(sc) ? '【过场】' : sc.choices ? '【抉择点】' : ''} ${id}</div>
+      <div class="desc">${esc(desc)}</div>
+      <div class="meta">${sc.choices ? sc.choices.length + ' 个选项' : ''} ${sc.hour ? '' : ''}</div>
+    </div>`;
+  list.appendChild(card);
+});
+
+function esc(s) { return String(s) ? String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;') : ''; }
+</script>
+</body>
+</html>

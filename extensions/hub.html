@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Novel2Game · 项目总控台</title>
+<link rel="icon" href="data:,">
+<style>
+:root {
+  --bg: #14100e; --bg2: #1d1712; --panel: #221b15;
+  --panel2: #2b2219; --line: #4a3a28; --text: #e8dcc8;
+  --muted: #9a8a72; --accent: #d4a24c; --gold: #e0b657;
+  --danger: #b8452f; --ok: #6b8e5a; --info: #4a7c9e;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: var(--bg); color: var(--text);
+  font-family: "Songti SC","STSong","SimSun","Noto Serif CJK SC",serif;
+  font-size: 14px; padding: 30px 20px 60px;
+}
+.container { max-width: 1100px; margin: 0 auto; }
+
+/* Header */
+header {
+  text-align: center; border-bottom: 1px solid var(--line);
+  padding-bottom: 28px; margin-bottom: 36px;
+}
+header h1 { font-size: 28px; color: var(--gold); letter-spacing: 6px; }
+header p { color: var(--muted); font-size: 13px; margin-top: 6px; letter-spacing: 1px; }
+header .version { color: var(--muted); font-size: 11px; margin-top: 4px; }
+header .nav-row { margin-top: 16px; display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+header .nav-row a {
+  color: var(--accent); text-decoration: none;
+  border: 1px solid var(--line); padding: 6px 16px; border-radius: 3px;
+  font-size: 13px; transition: all .15s;
+}
+header .nav-row a:hover { background: var(--panel2); border-color: var(--accent); }
+
+/* Section */
+.section-title {
+  font-size: 17px; color: var(--gold); letter-spacing: 3px;
+  border-left: 3px solid var(--accent); padding-left: 12px;
+  margin-bottom: 18px; margin-top: 36px;
+}
+.section-title small { font-size: 11px; color: var(--muted); letter-spacing: 1px; font-weight: normal; }
+
+/* Card grid */
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
+.card {
+  background: var(--panel); border: 1px solid var(--line);
+  border-radius: 6px; padding: 22px 20px; transition: all .2s;
+  position: relative; overflow: hidden;
+}
+.card:hover { border-color: var(--accent); transform: translateY(-2px); box-shadow: 0 4px 20px rgba(0,0,0,.3); }
+.card .icon { font-size: 28px; margin-bottom: 8px; }
+.card h3 { font-size: 15px; color: var(--gold); margin-bottom: 6px; letter-spacing: 2px; }
+.card p { font-size: 12px; color: var(--text); line-height: 1.7; }
+.card .status {
+  display: inline-block; font-size: 10px; padding: 2px 8px;
+  border-radius: 2px; letter-spacing: 1px; margin-top: 8px;
+}
+.status-live { background: rgba(107,142,90,.15); color: #6b8e5a; border: 1px solid rgba(107,142,90,.3); }
+.status-wip { background: rgba(212,162,76,.15); color: #d4a24c; border: 1px solid rgba(212,162,76,.3); }
+.status-plan { background: rgba(74,124,158,.15); color: #4a7c9e; border: 1px solid rgba(74,124,158,.3); }
+.card .link {
+  display: inline-block; margin-top: 10px;
+  color: var(--accent); text-decoration: none; font-size: 12px;
+  border: 1px solid var(--line); padding: 4px 12px; border-radius: 3px;
+  transition: all .15s;
+}
+.card .link:hover { background: var(--panel2); border-color: var(--accent); }
+.card .tags { margin-top: 8px; display: flex; gap: 4px; flex-wrap: wrap; }
+.card .tag {
+  font-size: 10px; padding: 1px 6px; border-radius: 2px;
+  background: var(--bg2); color: var(--muted);
+}
+
+/* Quick stats */
+.quick-stats {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 10px; margin-bottom: 24px;
+}
+.stat-item {
+  background: var(--panel); border: 1px solid var(--line);
+  border-radius: 4px; padding: 14px 12px; text-align: center;
+}
+.stat-item .num { font-size: 24px; color: var(--gold); font-weight: bold; }
+.stat-item .label { font-size: 11px; color: var(--muted); margin-top: 4px; letter-spacing: 1px; }
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>🏮 Novel2Game · 项目总控台</h1>
+    <p>长安十二时辰 × 水浒传 × 交互叙事 · 完整生态</p>
+    <div class="version">v2.0 · 2026-09-13</div>
+    <div class="nav-row">
+      <a href="../index.html">🎮 长安游戏</a>
+      <a href="../results.html">📜 结局图鉴</a>
+      <a href="character-cards.html">🃏 人物图鉴</a>
+      <a href="path-visualizer.html">🌳 路径全景</a>
+      <a href="scene-gallery.html">🖼️ 场景画廊</a>
+      <a href="share-card.html">📤 分享卡片</a>
+      <a href="stats-dashboard.html">📊 分析仪表盘</a>
+    </div>
+  </header>
+
+  <!-- Project Stats -->
+  <div class="quick-stats" id="statsRow"></div>
+
+  <!-- 已上线功能 -->
+  <div class="section-title">✅ 已上线 <small>直接可用</small></div>
+  <div class="grid">
+    <div class="card">
+      <div class="icon">🎮</div>
+      <h3>长安文字游戏</h3>
+      <p>十二时辰主线剧情 · 22 场景 · 63 选项 · 4 结局。MBTI 人格 + 六维画像，每一步选择都在塑造你的长安人格。</p>
+      <div class="status status-live">已上线</div>
+      <a class="link" href="../index.html">开始游戏 →</a>
+    </div>
+
+    <div class="card">
+      <div class="icon">📜</div>
+      <h3>结局图鉴</h3>
+      <p>4 大结局 + 16 型 MBTI 角色对照 + 长安六维高分榜。查看所有可能的结局路径和对应人物。</p>
+      <div class="status status-live">已上线</div>
+      <a class="link" href="../results.html">查看结局 →</a>
+    </div>
+
+    <div class="card">
+      <div class="icon">🃏</div>
+      <h3>人物知识卡</h3>
+      <p>16 位角色的扑克牌规格知识卡（63×88mm）。可按阵营筛选：靖安司 / 朝廷 / 坊间 / 蚍蜉。含 MBTI 类型与角色金句。</p>
+      <div class="tags"><span class="tag">知识图谱</span><span class="tag">视觉化</span></div>
+      <div class="status status-live">已上线</div>
+      <a class="link" href="character-cards.html">浏览图鉴 →</a>
+    </div>
+
+    <div class="card">
+      <div class="icon">🌳</div>
+      <h3>选择路径全景图</h3>
+      <p>从死牢到结局的完整抉择树可视化。可高亮任一结局的路径，鼠标悬停查看节点详情。25 节点 · 63 选项 · 6 层深度。</p>
+      <div class="tags"><span class="tag">知识图谱</span><span class="tag">数据分析</span></div>
+      <div class="status status-live">已上线</div>
+      <a class="link" href="path-visualizer.html">查看全景 →</a>
+    </div>
+
+    <div class="card">
+      <div class="icon">🖼️</div>
+      <h3>场景画廊 · SVG 插画</h3>
+      <p>为每个时辰节点生成 SVG 场景插画（死牢、靖安司、西市、平康坊、望楼、灯楼、胡饼摊、案牍库）。文字之外的视觉沉浸。</p>
+      <div class="tags"><span class="tag">视觉化</span></div>
+      <div class="status status-live">已上线</div>
+      <a class="link" href="scene-gallery.html">浏览画廊 →</a>
+    </div>
+
+    <div class="card">
+      <div class="icon">📤</div>
+      <h3>结局分享卡片</h3>
+      <p>生成"我的长安十二时辰结局"分享卡片：结局类型 + MBTI 类型 + 契合人物 + 一句话剧评。支持保存为 PNG 图片。</p>
+      <div class="tags"><span class="tag">社交</span></div>
+      <div class="status status-live">已上线</div>
+      <a class="link" href="share-card.html">生成卡片 →</a>
+    </div>
+
+    <div class="card">
+      <div class="icon">📊</div>
+      <h3>分析仪表盘</h3>
+      <p>5 个 Tab 数据面板：MBTI 四维平衡条、16 型人格分布热图、选择路径流量图、心理测量学批评问卷、本地存档快照。</p>
+      <div class="tags"><span class="tag">数据分析</span></div>
+      <div class="status status-live">已上线</div>
+      <a class="link" href="stats-dashboard.html">查看数据 →</a>
+    </div>
+  </div>
+
+  <!-- 即将上线 -->
+  <div class="section-title">🚧 建设中 <small>开发进度</small></div>
+  <div class="grid">
+    <div class="card">
+      <div class="icon">🔍</div>
+      <h3>推理解谜系统升级</h3>
+      <p>将线索系统从辅助收集升级为侦探机制。每个嫌疑人设隐藏线索阈值，收集足够才能解锁最终指认选项。多路径推理聚合。</p>
+      <div class="tags"><span class="tag">推理</span></div>
+      <div class="status status-wip">开发中</div>
+    </div>
+
+    <div class="card">
+      <div class="icon">🤖</div>
+      <h3>AI NPC 对话</h3>
+      <p>每个角色配置人格向量 + 背景故事。在关键节点可选择「再聊聊」，LLM 生成符合角色设定的对话。</p>
+      <div class="tags"><span class="tag">AI</span><span class="tag">LLM</span></div>
+      <div class="status status-wip">开发中</div>
+    </div>
+
+    <div class="card">
+      <div class="icon">📚</div>
+      <h3>唐代知识卡 · 教育科普</h3>
+      <p>玩一局学一段。嵌入唐代历史知识卡片：108 坊制度、靖安司官职、望楼旗语、上元节风俗等。每张卡片与剧情节点关联。</p>
+      <div class="tags"><span class="tag">教育</span><span class="tag">知识</span></div>
+      <div class="status status-wip">开发中</div>
+    </div>
+  </div>
+
+  <!-- 规划中 -->
+  <div class="section-title">📋 规划中</div>
+  <div class="grid">
+    <div class="card">
+      <div class="icon">🤖</div>
+      <h3>AI NPC 对话</h3>
+      <p>每个角色配置人格向量 + 背景故事。在关键节点可选择「再聊聊」，LLM 生成符合角色设定的对话。MBTI 和六维人格向量是现成的 prompt 种子。</p>
+      <div class="tags"><span class="tag">AI</span><span class="tag">LLM</span></div>
+      <div class="status status-plan">规划中</div>
+    </div>
+
+    <div class="card">
+      <div class="icon">🗺️</div>
+      <h3>长安城 RPG · 大地图</h3>
+      <p>复用水浒传 RPG 引擎的 overworld + battle + shop 系统。长安 108 坊可漫游，每个坊是可点击节点。张小敬带队，战斗用 arcane-tactics 战棋引擎。</p>
+      <div class="tags"><span class="tag">RPG</span><span class="tag">游戏</span></div>
+      <div class="status status-plan">规划中</div>
+    </div>
+
+    <div class="card">
+      <div class="icon">📚</div>
+      <h3>唐代知识卡 · 教育科普</h3>
+      <p>玩一局学一段。嵌入唐代历史知识卡片：108 坊制度、靖安司官职、望楼旗语、上元节风俗等。每张卡片与剧情节点关联。</p>
+      <div class="tags"><span class="tag">教育</span><span class="tag">知识</span></div>
+      <div class="status status-plan">规划中</div>
+    </div>
+
+    <div class="card">
+      <div class="icon">⚔️</div>
+      <h3>水浒传角色扮演</h3>
+      <p>复用 RPG 引擎 + characters.js（史进、鲁达、林冲等）+ battles.js（景阳冈打虎、拳打镇关西、三打祝家庄）+ world.js 重新组装为完整水浒 RPG。</p>
+      <div class="tags"><span class="tag">RPG</span><span class="tag">游戏</span></div>
+      <div class="status status-plan">规划中</div>
+    </div>
+  </div>
+
+  <!-- Tools / Developer -->
+  <div class="section-title">🔧 开发者工具 <small>内部 / 测试</small></div>
+  <div class="grid">
+    <div class="card">
+      <div class="icon">✅</div>
+      <h3>剧情树连通性校验</h3>
+      <p>verify.mjs — 检测死节点、死 flag、裸标记、条件溢出等。每次修改剧情后建议运行。</p>
+      <a class="link" href="https://github.com/CochraneK/changan" target="_blank">GitHub →</a>
+    </div>
+    <div class="card">
+      <div class="icon">🔄</div>
+      <h3>全流程模拟</h3>
+      <p>simulate.mjs — 随机 / 固定策略走通全部路径，验证每一条路线都能到达结局。</p>
+    </div>
+    <div class="card">
+      <div class="icon">📊</div>
+      <h3>维度覆盖审计</h3>
+      <p>audit_dimensions.py — MBTI 维度平衡审计：单维度占比、维度交叉污染、平衡度、左右偏侧比。</p>
+    </div>
+    <div class="card">
+      <div class="icon">🔬</div>
+      <h3>心理测量审计</h3>
+      <p>psy_audit.mjs — 构念效度、信度估计、基线噪声分析。5000 字完整心理测量学批评。</p>
+    </div>
+  </div>
+</div>
+
+<script>
+// ===== 从游戏存档读取实时统计 =====
+(function() {
+  const STATS = [
+    { key: 'scenes', label: '剧情节点', icon: '📜', desc: 'scenes.js 总数 / 含结局' },
+    { key: 'choices', label: '抉择数', icon: '⚖️', desc: '全剧情选项数量' },
+    { key: 'endings', label: '结局数量', icon: '🏁', desc: '4 大结局通路' },
+    { key: 'characters', label: '登场人物', icon: '👥', desc: '含 16 型 MBTI 映射' },
+    { key: 'replays', label: '本地存档局数', icon: '🔄', desc: 'localStorage 记录' },
+    { key: 'flags', label: '剧情标记', icon: '🚩', desc: '条件路由分支' },
+  ];
+
+  function loadGameMeta() {
+    let saveCount = 0, lastEnding = null;
+    try {
+      const raw = localStorage.getItem('changan-save-v1');
+      if (raw) {
+        const s = JSON.parse(raw);
+        saveCount = s.choicesMade || 0;
+        if (s.flags) STATS[5].val = s.flags.length;
+      }
+    } catch (e) { /* ignore */ }
+
+    // 扫所有保存过的结局（key 格式 changan-ending-v1-xxx）
+    let endingsSeen = 0;
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i);
+      if (k && k.startsWith('changan-') && k !== 'changan-save-v1') endingsSeen++;
+    }
+
+    return { saveCount, endingsSeen };
+  }
+
+  // 硬编码的统计数据（当无存档时可显示项目数据）
+  STATS[0].val = '59';
+  STATS[1].val = '63';
+  STATS[2].val = '4';
+  STATS[3].val = '16';
+  STATS[4].val = '—';
+  STATS[5].val = '68';
+
+  const meta = loadGameMeta();
+  if (meta.saveCount > 0) STATS[4].val = meta.saveCount;
+
+  const row = document.getElementById('statsRow');
+  if (!row) return;
+  row.innerHTML = STATS.map(s => `
+    <div class="stat-item" title="${s.desc}">
+      <div class="num">${s.val}</div>
+      <div class="label">${s.icon} ${s.label}</div>
+    </div>
+  `).join('');
+})();
+</script>
+</body>
+</html>

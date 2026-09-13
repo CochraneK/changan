@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>长安人物图鉴 · 扑克牌</title>
+<link rel="icon" href="data:,">
+<style>
+:root {
+  --bg: #14100e; --bg2: #1d1712; --panel: #221b15;
+  --line: #4a3a28; --text: #e8dcc8; --muted: #9a8a72;
+  --accent: #d4a24c; --gold: #e0b657;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: var(--bg); color: var(--text);
+  font-family: "Songti SC","STSong","SimSun","Noto Serif CJK SC",serif;
+  font-size: 14px; padding: 30px 20px 60px;
+}
+.container { max-width: 1100px; margin: 0 auto; }
+
+/* Header */
+header {
+  text-align: center; border-bottom: 1px solid var(--line);
+  padding-bottom: 24px; margin-bottom: 32px;
+}
+header h1 { font-size: 26px; color: var(--gold); letter-spacing: 4px; }
+header p { color: var(--muted); font-size: 13px; margin-top: 6px; }
+header .back { margin-top: 14px; }
+header .back a {
+  color: var(--accent); text-decoration: none;
+  border: 1px solid var(--line); padding: 5px 14px; border-radius: 3px;
+  font-size: 12px;
+}
+
+/* Filter bar */
+.filter-bar {
+  display: flex; gap: 10px; flex-wrap: wrap; justify-content: center;
+  margin-bottom: 28px;
+}
+.filter-bar button {
+  background: var(--bg2); color: var(--muted); border: 1px solid var(--line);
+  padding: 5px 14px; border-radius: 3px; cursor: pointer; font-size: 12px;
+  font-family: inherit; transition: all .15s;
+}
+.filter-bar button.active { color: var(--gold); border-color: var(--gold); background: var(--panel); }
+.filter-bar button:hover { border-color: var(--accent); color: var(--text); }
+
+/* Grid — Poker card size 63×88mm ~ 2.48"×3.46" */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+  gap: 18px;
+}
+.card {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 18px 14px 14px;
+  position: relative;
+  overflow: hidden;
+  transition: all .2s;
+  cursor: default;
+  aspect-ratio: 2.48 / 3.46; /* 63×88mm poker ratio */
+  display: flex;
+  flex-direction: column;
+}
+.card:hover { border-color: var(--accent); transform: translateY(-2px); box-shadow: 0 4px 20px rgba(0,0,0,.4); }
+
+/* Corner type badge */
+.card .corner {
+  position: absolute; top: 8px; right: 10px;
+  font-size: 10px; color: var(--muted); letter-spacing: 1px;
+}
+.card .corner.tag-靖安司 { color: #d4a24c; }
+.card .corner.tag-朝廷 { color: #b8452f; }
+.card .corner.tag-坊间 { color: #6b8e5a; }
+.card .corner.tag-蚍蜉 { color: #a0522d; }
+
+.card .name-row {
+  display: flex; align-items: baseline; gap: 6px;
+  margin-bottom: 2px;
+}
+.card .name { font-size: 17px; font-weight: bold; color: var(--gold); }
+.card .alias { font-size: 11px; color: var(--muted); }
+
+.card .side-badge {
+  display: inline-block;
+  font-size: 10px;
+  padding: 1px 8px;
+  border-radius: 2px;
+  margin: 6px 0;
+  letter-spacing: 1px;
+}
+.side-靖安司 { background: rgba(212,162,76,.15); color: #d4a24c; border: 1px solid rgba(212,162,76,.3); }
+.side-朝廷 { background: rgba(184,69,47,.15); color: #b8452f; border: 1px solid rgba(184,69,47,.3); }
+.side-坊间 { background: rgba(107,142,90,.15); color: #6b8e5a; border: 1px solid rgba(107,142,90,.3); }
+.side-蚍蜉 { background: rgba(160,82,45,.15); color: #a0522d; border: 1px solid rgba(160,82,45,.3); }
+
+.card .words {
+  font-style: italic; font-size: 12px; color: var(--muted);
+  margin: 6px 0; padding-left: 8px; border-left: 2px solid var(--line);
+  line-height: 1.6;
+}
+
+.card .bio {
+  font-size: 11px; line-height: 1.7; color: var(--text);
+  flex: 1; overflow-y: auto;
+  margin-top: 4px;
+}
+
+.card .mbti-tag {
+  margin-top: auto; padding-top: 6px;
+  font-size: 10px; color: var(--accent);
+  border-top: 1px solid var(--line);
+  display: flex; justify-content: space-between;
+}
+
+/* Empty state */
+.empty-state { text-align: center; color: var(--muted); padding: 60px 0; font-size: 14px; }
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>🃏 长安人物图鉴</h1>
+    <p>63×88 mm 扑克牌规格 · 鼠标悬停可见全貌</p>
+    <div class="back"><a href="../index.html">← 返回游戏</a> <a href="hub.html" style="margin-left:10px;">🏠 项目总控台</a></div>
+  </header>
+
+  <div class="filter-bar" id="filterBar">
+    <button data-filter="all" class="active">全部</button>
+    <button data-filter="靖安司">靖安司</button>
+    <button data-filter="朝廷">朝廷</button>
+    <button data-filter="坊间">坊间</button>
+    <button data-filter="蚍蜉">蚍蜉</button>
+  </div>
+
+  <div class="grid" id="cardGrid"></div>
+</div>
+
+<script type="module">
+import { characters, hours } from '../src/data/characters.js';
+import { MBTI_TYPES } from '../src/data/mbti.js';
+
+// MBTI type assignments (matching results.html logic)
+const mbtiMap = {
+  zhangxiaojing: 'ESTP', libi: 'INTJ', cuiqi: 'ESTJ', tanqi: 'ISFJ',
+  wenran: 'ISFP', yaoruneng: 'INTP', longbo: 'ENTP', heyizheng: 'INFJ',
+  yuanzai: 'ENTJ', linjiulang: 'ENTJ', xuhezi: 'ISTJ', yuzhen: 'ISTP',
+  dingtonger: 'ENFP', wangyunxiu: 'ESFJ', gela: 'ENTP',
+};
+
+function render(filter = 'all') {
+  const grid = document.getElementById('cardGrid');
+  const entries = Object.entries(characters).filter(([id, c]) => {
+    if (id === 'baixing') return filter === 'all';
+    if (filter === 'all') return true;
+    return c.side === filter;
+  });
+
+  if (entries.length === 0) {
+    grid.innerHTML = '<div class="empty-state">该阵营暂无人物收录。</div>';
+    return;
+  }
+
+  grid.innerHTML = entries.map(([id, c]) => {
+    const mbti = mbtiMap[id] || '';
+    const typeInfo = mbti ? (MBTI_TYPES[mbti] || {}) : {};
+    return `<div class="card" data-side="${c.side}">
+      <div class="corner tag-${c.side}">${c.side}</div>
+      <div class="name-row">
+        <span class="name">${esc(c.name)}</span>
+        <span class="alias">${esc(c.alias)}</span>
+      </div>
+      <span class="side-badge side-${c.side}">${c.side}</span>
+      <div class="words">「${esc(c.words)}」</div>
+      <div class="bio">${esc(c.bio)}</div>
+      ${mbti ? `<div class="mbti-tag">
+        <span>${mbti} · ${esc(typeInfo.name || '')}</span>
+        <span>${esc(typeInfo.title || '')}</span>
+      </div>` : ''}
+    </div>`;
+  }).join('');
+}
+
+function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+// Filter buttons
+document.querySelectorAll('#filterBar button').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('#filterBar button').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    render(btn.dataset.filter);
+  });
+});
+
+render('all');
+</script>
+</body>
+</html>
