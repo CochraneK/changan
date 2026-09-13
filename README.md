@@ -432,7 +432,6 @@ T/F: T=12  F=12  |  J/P: J=10  P=14
     ├── smoke_results.py        results.html 图鉴页渲染冒烟（断言卡片真的渲染出来）
     ├── shot_passage.py         过场场景的视觉抽查（截图 + 点「继续」确认真的跳转）
     ├── mbti_dist.py            真实浏览器 N 局统计 MBTI 分布
-    ├── migrate_inserts.py      一次性迁移脚本：pos → 正文 {{inserts}} 标记（已执行完，可删）
     └── requirements.txt        Python 测试依赖（仅 playwright）
 ```
 
