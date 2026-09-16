@@ -1,4 +1,19 @@
+<div align="center">
+
 # 长安十二时辰 · 灯火如昼
+
+**浏览器单页剧情冒险 · 十二时辰主线 · 条件门控分支 · 4 个结局 · 人格画像**
+
+<p>
+  <img alt="Runtime" src="https://img.shields.io/badge/runtime-zero%20dependencies-6C63FF">
+  <img alt="Build" src="https://img.shields.io/badge/build-none-2F80ED">
+  <img alt="Frontend" src="https://img.shields.io/badge/frontend-native%20ES%20Modules-27AE60">
+  <img alt="Use" src="https://img.shields.io/badge/use-non--commercial-F2994A">
+</p>
+
+**A browser-native narrative prototype inspired by _The Longest Day in Chang'an_.**
+
+</div>
 
 把马伯庸《长安十二时辰》改编成浏览器单页剧情冒险：覆盖完整十二时辰主线，**条件门控分支 + 4 结局 + MBTI 人格画像**。
 
