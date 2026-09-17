@@ -127,6 +127,7 @@ export function computePipelineProgress(clues) {
     return {
       ...p,
       matched: matched.length,
+      displayMatched: Math.min(matched.length, p.threshold),
       total: p.threshold,
       progress,
       unlocked: matched.length >= p.threshold,
@@ -175,7 +176,7 @@ export function renderPuzzlePanel(clues, allFlags) {
       <div class="pipeline-header">
         <span class="pipeline-icon">${p.icon}</span>
         <span class="pipeline-name">${p.name}</span>
-        <span class="pipeline-progress-text">${p.matched}/${p.threshold}</span>
+        <span class="pipeline-progress-text">${p.displayMatched}/${p.threshold}</span>
       </div>
       <div class="pipeline-track">
         <div class="pipeline-fill" style="width:${p.progress}%"></div>
