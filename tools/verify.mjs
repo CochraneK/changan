@@ -5,6 +5,7 @@ import { scenes, START_SCENE, PROTAGONIST, ALLY_TRUST, isPassage, nextTargets } 
 import { characters, hours } from '../src/data/characters.js';
 import { TRAITS, CHOICE_TRAITS, CHARACTER_TRAITS } from '../src/data/traits.js';
 import { MBTI_DIMS, MBTI_TYPES, MBTI_CHOICE, CHARACTER_MBTI } from '../src/data/mbti.js';
+import { PUZZLE_PIPELINES } from '../src/data/puzzles.js';
 
 let errors = [];
 let warnings = [];
@@ -29,6 +30,8 @@ const isFree = (ch) => !ch.require;
 // 全剧所有可设置的 flag（用于查"幽灵条件"）
 const allFlags = new Set();
 ids.forEach(id => (scenes[id].choices || []).forEach(ch => { if (ch.flag) allFlags.add(ch.flag); }));
+// 推理突破 flag 不是某个 choice 直接写入，而是 main.js 在 checkNewUnlocks 后自动写入。
+PUZZLE_PIPELINES.forEach(p => { if (p.reward?.flag) allFlags.add(p.reward.flag); });
 
 // 条件里被引用到的 flag
 const usedFlags = new Set();
