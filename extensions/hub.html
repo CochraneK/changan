@@ -93,7 +93,7 @@ header .nav-row a:hover { background: var(--panel2); border-color: var(--accent)
   <header>
     <h1>🏮 Novel2Game · 项目总控台</h1>
     <p>长安十二时辰 × 水浒传 × 交互叙事 · 完整生态</p>
-    <div class="version">v2.0 · 2026-09-13</div>
+    <div class="version">v2.1 · 2026-09-17</div>
     <div class="nav-row">
       <a href="../index.html">🎮 长安游戏</a>
       <a href="../results.html">📜 结局图鉴</a>
@@ -114,7 +114,7 @@ header .nav-row a:hover { background: var(--panel2); border-color: var(--accent)
     <div class="card">
       <div class="icon">🎮</div>
       <h3>长安文字游戏</h3>
-      <p>十二时辰主线剧情 · 22 场景 · 63 选项 · 4 结局。MBTI 人格 + 六维画像，每一步选择都在塑造你的长安人格。</p>
+      <p>十二时辰主线剧情 · <span data-meta="choicePoints">—</span> 个抉择点 · <span data-meta="choices">—</span> 个选项 · <span data-meta="endings">—</span> 个结局。MBTI 人格 + 六维画像，并内置侦探笔记与唐代知识卡。</p>
       <div class="status status-live">已上线</div>
       <a class="link" href="../index.html">开始游戏 →</a>
     </div>
@@ -122,7 +122,7 @@ header .nav-row a:hover { background: var(--panel2); border-color: var(--accent)
     <div class="card">
       <div class="icon">📜</div>
       <h3>结局图鉴</h3>
-      <p>4 大结局 + 16 型 MBTI 角色对照 + 长安六维高分榜。查看所有可能的结局路径和对应人物。</p>
+      <p><span data-meta="endings">—</span> 大结局 + 16 型 MBTI 角色对照 + 长安六维画像。查看所有可能的结局路径和对应人物。</p>
       <div class="status status-live">已上线</div>
       <a class="link" href="../results.html">查看结局 →</a>
     </div>
@@ -139,7 +139,7 @@ header .nav-row a:hover { background: var(--panel2); border-color: var(--accent)
     <div class="card">
       <div class="icon">🌳</div>
       <h3>选择路径全景图</h3>
-      <p>从死牢到结局的完整抉择树可视化。可高亮任一结局的路径，鼠标悬停查看节点详情。25 节点 · 63 选项 · 6 层深度。</p>
+      <p>从死牢到结局的完整抉择树可视化。可高亮任一结局的路径，鼠标悬停查看节点详情；节点与选项数量以主剧情数据为准。</p>
       <div class="tags"><span class="tag">知识图谱</span><span class="tag">数据分析</span></div>
       <div class="status status-live">已上线</div>
       <a class="link" href="path-visualizer.html">查看全景 →</a>
@@ -177,14 +177,6 @@ header .nav-row a:hover { background: var(--panel2); border-color: var(--accent)
   <div class="section-title">🚧 建设中 <small>开发进度</small></div>
   <div class="grid">
     <div class="card">
-      <div class="icon">🔍</div>
-      <h3>推理解谜系统升级</h3>
-      <p>将线索系统从辅助收集升级为侦探机制。每个嫌疑人设隐藏线索阈值，收集足够才能解锁最终指认选项。多路径推理聚合。</p>
-      <div class="tags"><span class="tag">推理</span></div>
-      <div class="status status-wip">开发中</div>
-    </div>
-
-    <div class="card">
       <div class="icon">🤖</div>
       <h3>AI NPC 对话</h3>
       <p>每个角色配置人格向量 + 背景故事。在关键节点可选择「再聊聊」，LLM 生成符合角色设定的对话。</p>
@@ -192,39 +184,16 @@ header .nav-row a:hover { background: var(--panel2); border-color: var(--accent)
       <div class="status status-wip">开发中</div>
     </div>
 
-    <div class="card">
-      <div class="icon">📚</div>
-      <h3>唐代知识卡 · 教育科普</h3>
-      <p>玩一局学一段。嵌入唐代历史知识卡片：108 坊制度、靖安司官职、望楼旗语、上元节风俗等。每张卡片与剧情节点关联。</p>
-      <div class="tags"><span class="tag">教育</span><span class="tag">知识</span></div>
-      <div class="status status-wip">开发中</div>
-    </div>
   </div>
 
   <!-- 规划中 -->
   <div class="section-title">📋 规划中</div>
   <div class="grid">
     <div class="card">
-      <div class="icon">🤖</div>
-      <h3>AI NPC 对话</h3>
-      <p>每个角色配置人格向量 + 背景故事。在关键节点可选择「再聊聊」，LLM 生成符合角色设定的对话。MBTI 和六维人格向量是现成的 prompt 种子。</p>
-      <div class="tags"><span class="tag">AI</span><span class="tag">LLM</span></div>
-      <div class="status status-plan">规划中</div>
-    </div>
-
-    <div class="card">
       <div class="icon">🗺️</div>
       <h3>长安城 RPG · 大地图</h3>
       <p>复用水浒传 RPG 引擎的 overworld + battle + shop 系统。长安 108 坊可漫游，每个坊是可点击节点。张小敬带队，战斗用 arcane-tactics 战棋引擎。</p>
       <div class="tags"><span class="tag">RPG</span><span class="tag">游戏</span></div>
-      <div class="status status-plan">规划中</div>
-    </div>
-
-    <div class="card">
-      <div class="icon">📚</div>
-      <h3>唐代知识卡 · 教育科普</h3>
-      <p>玩一局学一段。嵌入唐代历史知识卡片：108 坊制度、靖安司官职、望楼旗语、上元节风俗等。每张卡片与剧情节点关联。</p>
-      <div class="tags"><span class="tag">教育</span><span class="tag">知识</span></div>
       <div class="status status-plan">规划中</div>
     </div>
 
@@ -264,59 +233,48 @@ header .nav-row a:hover { background: var(--panel2); border-color: var(--accent)
   </div>
 </div>
 
-<script>
-// ===== 从游戏存档读取实时统计 =====
-(function() {
-  const STATS = [
-    { key: 'scenes', label: '剧情节点', icon: '📜', desc: 'scenes.js 总数 / 含结局' },
-    { key: 'choices', label: '抉择数', icon: '⚖️', desc: '全剧情选项数量' },
-    { key: 'endings', label: '结局数量', icon: '🏁', desc: '4 大结局通路' },
-    { key: 'characters', label: '登场人物', icon: '👥', desc: '含 16 型 MBTI 映射' },
-    { key: 'replays', label: '本地存档局数', icon: '🔄', desc: 'localStorage 记录' },
-    { key: 'flags', label: '剧情标记', icon: '🚩', desc: '条件路由分支' },
-  ];
+<script type="module">
+import { scenes, isPassage } from '../src/data/scenes.js';
+import { characters } from '../src/data/characters.js';
 
-  function loadGameMeta() {
-    let saveCount = 0, lastEnding = null;
-    try {
-      const raw = localStorage.getItem('changan-save-v1');
-      if (raw) {
-        const s = JSON.parse(raw);
-        saveCount = s.choicesMade || 0;
-        if (s.flags) STATS[5].val = s.flags.length;
-      }
-    } catch (e) { /* ignore */ }
+const sceneList = Object.values(scenes);
+const projectMeta = {
+  scenes: sceneList.length,
+  choicePoints: sceneList.filter(sc => !sc.ending && !isPassage(sc) && Array.isArray(sc.choices) && sc.choices.length).length,
+  choices: sceneList.reduce((n, sc) => n + (sc.choices?.length || 0), 0),
+  endings: sceneList.filter(sc => sc.ending).length,
+  characters: Object.keys(characters).length,
+};
 
-    // 扫所有保存过的结局（key 格式 changan-ending-v1-xxx）
-    let endingsSeen = 0;
-    for (let i = 0; i < localStorage.length; i++) {
-      const k = localStorage.key(i);
-      if (k && k.startsWith('changan-') && k !== 'changan-save-v1') endingsSeen++;
-    }
+let savedChoices = '—';
+try {
+  const raw = localStorage.getItem('changan-save-v1');
+  if (raw) savedChoices = JSON.parse(raw)?.choicesMade ?? '—';
+} catch (e) { /* storage unavailable: keep graceful fallback */ }
 
-    return { saveCount, endingsSeen };
-  }
+const stats = [
+  { val: projectMeta.scenes, label: '剧情节点', icon: '📜', desc: 'scenes.js 全部节点（含过场与结局）' },
+  { val: projectMeta.choicePoints, label: '抉择点', icon: '🧭', desc: '真正需要玩家做选择的节点' },
+  { val: projectMeta.choices, label: '选项数', icon: '⚖️', desc: '全剧情 choices 总数' },
+  { val: projectMeta.endings, label: '结局数量', icon: '🏁', desc: '由 scenes.js 的 ending 标记实时统计' },
+  { val: projectMeta.characters, label: '登场人物', icon: '👥', desc: 'characters.js 角色数量' },
+  { val: savedChoices, label: '当前局抉择', icon: '💾', desc: '当前浏览器存档已完成的关键抉择数' },
+];
 
-  // 硬编码的统计数据（当无存档时可显示项目数据）
-  STATS[0].val = '59';
-  STATS[1].val = '63';
-  STATS[2].val = '4';
-  STATS[3].val = '16';
-  STATS[4].val = '—';
-  STATS[5].val = '68';
-
-  const meta = loadGameMeta();
-  if (meta.saveCount > 0) STATS[4].val = meta.saveCount;
-
-  const row = document.getElementById('statsRow');
-  if (!row) return;
-  row.innerHTML = STATS.map(s => `
+const row = document.getElementById('statsRow');
+if (row) {
+  row.innerHTML = stats.map(s => `
     <div class="stat-item" title="${s.desc}">
       <div class="num">${s.val}</div>
       <div class="label">${s.icon} ${s.label}</div>
     </div>
   `).join('');
-})();
+}
+
+document.querySelectorAll('[data-meta]').forEach(el => {
+  const key = el.dataset.meta;
+  if (Object.hasOwn(projectMeta, key)) el.textContent = projectMeta[key];
+});
 </script>
 </body>
 </html>
