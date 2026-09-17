@@ -111,8 +111,8 @@ header .back a {
 
   <!-- Tab 1: Dimension balance -->
   <div class="tab-content active" id="tab-dimensions">
-    <div class="info-box">
-      <strong>维度平衡审计</strong> — MECE 完整性评估。单维度选项 48%（30/63），EI-JP 交叉污染 11 次（对比修改前 18 次，↓39%）。绿色区域表示平衡度 ≥ 0.8（接近 MECE 标准）。
+    <div class="info-box" id="dimSummary">
+      <strong>维度平衡审计</strong> — 正在从当前 MBTI 权重表计算…
     </div>
     <div class="card">
       <h3>MBTI 四维平衡</h3>
@@ -133,10 +133,10 @@ header .back a {
   <!-- Tab 2: 16 type distribution -->
   <div class="tab-content" id="tab-types">
     <div class="info-box">
-      <strong>16 型人格分布</strong> — 基于剧情权重推算的理论分布。实际玩家分布会因个人选择偏离。张小敬 (ESTP) 和 李必 (INTJ) 的选项权重最高。
+      <strong>16 型方向覆盖</strong> — 这是基于当前剧情权重的设计启发式，不是玩家类型分布预测，也不是常模结果。
     </div>
     <div class="card">
-      <h3>理论得分覆盖率</h3>
+      <h3>类型方向覆盖指数</h3>
       <div id="typeChart" class="chart-bar-group"></div>
     </div>
     <div class="row">
@@ -156,7 +156,7 @@ header .back a {
   <!-- Tab 3: Choice path analysis -->
   <div class="tab-content" id="tab-choices">
     <div class="info-box">
-      <strong>选择路径热力</strong> — 哪些选项最容易被选？标准：角色默认信任方向（ESTP/INTJ/ENTP 的高信任选项）、"风险"标签选项（通常选的人少）。
+      <strong>选择路径概览</strong> — 这里展示的是静态结构与风险标签启发式，不代表真实玩家点击概率；真实热度需要匿名行为数据才能估计。
     </div>
     <div class="card">
       <h3>各场景选项热度估计</h3>
@@ -164,7 +164,7 @@ header .back a {
     </div>
     <div class="row">
       <div class="card">
-        <h3>结局可达路径数</h3>
+        <h3>结局清单</h3>
         <div id="endingReach" class="chart-bar-group"></div>
       </div>
       <div class="card">
@@ -192,23 +192,59 @@ header .back a {
 </div>
 
 <script type="module">
-import { scenes } from '../src/data/scenes.js';
+import { scenes, ALLY_TRUST } from '../src/data/scenes.js';
 import { characters } from '../src/data/characters.js';
-import { MBTI_CHOICE, MBTI_DIMS, MBTI_TYPES } from '../src/data/mbti.js';
+import { MBTI_CHOICE, MBTI_DIMS, MBTI_TYPES, computeMBTI } from '../src/data/mbti.js';
 import { TRAITS, CHOICE_TRAITS } from '../src/data/traits.js';
 
 // ── Dimension balance ──
-const dimData = [
-  { key: 'EI', left: 'E', right: 'I', balance: 0.53, pos: 17, neg: 9, nodes: '17/22' },
-  { key: 'SN', left: 'S', right: 'N', balance: 0.89, pos: 9, neg: 8, nodes: '14/22' },
-  { key: 'TF', left: 'T', right: 'F', balance: 0.73, pos: 8, neg: 11, nodes: '13/22' },
-  { key: 'JP', left: 'J', right: 'P', balance: 0.69, pos: 13, neg: 9, nodes: '16/22' },
-];
+// Everything below is derived from the canonical MBTI_CHOICE table. No copied counts.
+const choicePointCount = Object.values(scenes)
+  .filter(sc => Array.isArray(sc.choices) && sc.choices.length).length;
+const allWeights = Object.values(MBTI_CHOICE).flat();
+
+function choiceShapeStats() {
+  const total = allWeights.length;
+  const single = allWeights.filter(w =>
+    Object.values(w).filter(v => v !== 0).length === 1
+  ).length;
+  return { total, single, multi: total - single };
+}
+
+const dimData = MBTI_DIMS.map(d => {
+  const pos = allWeights.filter(w => (w[d.key] || 0) > 0).length;
+  const neg = allWeights.filter(w => (w[d.key] || 0) < 0).length;
+  const nodes = Object.values(MBTI_CHOICE)
+    .filter(choices => choices.some(w => (w[d.key] || 0) !== 0)).length;
+  const hi = Math.max(pos, neg);
+  const lo = Math.min(pos, neg);
+  return {
+    key: d.key,
+    left: d.left,
+    right: d.right,
+    pos,
+    neg,
+    nodes,
+    balance: hi > 0 ? lo / hi : 0,
+  };
+});
+
+function renderDimSummary() {
+  const el = document.getElementById('dimSummary');
+  if (!el) return;
+  const shape = choiceShapeStats();
+  const crossEiJp = allWeights.filter(w => (w.EI || 0) !== 0 && (w.JP || 0) !== 0).length;
+  el.innerHTML = `<strong>维度平衡审计</strong> — 当前共 ${shape.total} 个选项权重；
+    单维度 ${shape.single} 个（${Math.round(shape.single / shape.total * 100)}%），
+    多维度 ${shape.multi} 个（${Math.round(shape.multi / shape.total * 100)}%），
+    EI–JP 同时计分 ${crossEiJp} 次。所有数字均由当前权重表实时计算。`;
+}
 
 function renderDimensionChart() {
   const el = document.getElementById('dimChart');
   el.innerHTML = dimData.map(d => {
-    const leftPct = Math.round(d.pos / (d.pos + d.neg) * 100);
+    const denom = d.pos + d.neg;
+    const leftPct = denom ? Math.round(d.pos / denom * 100) : 50;
     const rightPct = 100 - leftPct;
     const color = d.balance >= 0.8 ? '#6b8e5a' : d.balance >= 0.6 ? '#d4a24c' : '#b8452f';
     return `<div class="dim-row">
@@ -223,18 +259,7 @@ function renderDimensionChart() {
 
 function renderDimTable() {
   const el = document.getElementById('dimTable');
-  const totalChoices = Object.values(scenes).reduce((s, sc) => s + (sc.choices?.length || 0), 0);
-  const countSingleDim = () => {
-    let n = 0;
-    Object.entries(MBTI_CHOICE).forEach(([, choices]) => {
-      choices.forEach(w => {
-        if (Object.keys(w).length <= 1 && Object.values(w).some(v => v !== 0)) n++;
-      });
-    });
-    return n;
-  };
-  const single = countSingleDim();
-  const multi = totalChoices - single;
+  const { total: totalChoices, single, multi } = choiceShapeStats();
 
   let html = `<tr><th>指标</th><th>值</th><th>状态</th></tr>
     <tr><td>总选项</td><td>${totalChoices}</td><td>—</td></tr>
@@ -329,12 +354,10 @@ function renderTypeChart() {
 // ── Node coverage ──
 function renderNodeCoverage() {
   const el = document.getElementById('nodeCoverage');
-  const totalScenes = Object.keys(scenes).filter(id => scenes[id] && (scenes[id].choices || scenes[id].ending)).length;
-
-  const coverage = dimData.map(d => {
-    const n = parseInt(d.nodes);
-    return { ...d, pct: Math.round(n / totalScenes * 100) };
-  });
+  const coverage = dimData.map(d => ({
+    ...d,
+    pct: Math.round(d.nodes / choicePointCount * 100),
+  }));
 
   el.innerHTML = coverage.map(d => {
     return `<div class="chart-bar-row">
@@ -342,13 +365,12 @@ function renderNodeCoverage() {
       <div class="track">
         <div class="fill" style="width:${d.pct}%;background:${d.pct >= 70 ? '#6b8e5a' : d.pct >= 55 ? '#d4a24c' : '#b8452f'}"></div>
       </div>
-      <span class="pct">${d.nodes} (${d.pct}%)</span>
+      <span class="pct">${d.nodes}/${choicePointCount} (${d.pct}%)</span>
     </div>`;
   }).join('') +
   `<div style="font-size:11px;color:var(--muted);margin-top:6px;">
-    总剧情节点（含结局）: ${totalScenes} &nbsp;|&nbsp; 
-    覆盖目标: ≥75% (≥${Math.ceil(totalScenes * 0.75)}) &nbsp;|&nbsp; 
-    ⚠️ SN/TF 覆盖不足
+    抉择点总数: ${choicePointCount} &nbsp;|&nbsp;
+    覆盖目标: ≥75% (≥${Math.ceil(choicePointCount * 0.75)} 个抉择点)
   </div>`;
 }
 
@@ -396,6 +418,8 @@ function renderPathStats() {
   const endings = Object.values(scenes).filter(sc => sc.ending).length;
   const choiceNodes = Object.values(scenes).filter(sc => sc.choices).length;
   const totalChoices = Object.values(scenes).reduce((s, sc) => s + (sc.choices?.length || 0), 0);
+  const choiceScenes = Object.values(scenes).filter(sc => sc.choices?.length);
+  const log10Combos = choiceScenes.reduce((sum, sc) => sum + Math.log10(sc.choices.length), 0);
 
   el.innerHTML = `
     <table class="data-table">
@@ -406,7 +430,7 @@ function renderPathStats() {
       <tr><td>结局</td><td>${endings}</td></tr>
       <tr><td>过场/消遣</td><td>${totalScenes - choiceNodes - endings}</td></tr>
       <tr><td>平均每节点选项</td><td>${choiceNodes > 0 ? (totalChoices / choiceNodes).toFixed(1) : 0}</td></tr>
-      <tr><td>理论路径组合</td><td>≈ 2^${choiceNodes} 级别</td></tr>
+      <tr><td>未考虑门控的组合上界</td><td>约 10^${log10Combos.toFixed(1)}</td></tr>
     </table>
     <p style="font-size:11px;color:var(--muted);margin-top:8px;">
       实际有效路径远少于理论值，因为条件和门控机制会收敛。
@@ -416,21 +440,23 @@ function renderPathStats() {
 // ── Psychometric audit ──
 function renderAudit() {
   const el = document.getElementById('auditContent');
+  const shape = choiceShapeStats();
+  const perDim = dimData.map(d => `${d.key} ${d.nodes}/${choicePointCount}`).join(' · ');
   el.innerHTML = `
     <p><strong>1. 构念效度（Construct Validity）</strong></p>
-    <p>MBTI 在学术心理学中已被 Big Five (OCEAN) 取代，多数研究不支持其二分法假设。本测评并非诊断工具，而是一种"叙事人格匹配"游戏机制。</p>
+    <p>这里的 MBTI 是叙事人格反馈机制，不是临床或能力测验。二分型人格并非现代心理测量的主流连续特质框架；结果只适合娱乐与自我觉察。</p>
     <br>
-    <p><strong>2. 信度估计（Reliability）</strong></p>
-    <p>当前 63 选项平均分配 4 维度 ≈ 每维 15.75 题。学界标准：单维度 ≥ 10 题时 α > 0.70 可接受。当前每维覆盖 13-17 节点，理论 α ≈ 0.55-0.65（因选项高相关而膨胀）。建议 ≥ 20 题/维。</p>
+    <p><strong>2. 覆盖不等于信度</strong></p>
+    <p>当前共有 ${shape.total} 个选项权重；各维度覆盖抉择点为 ${perDim}。题量与覆盖率不能直接推出 Cronbach's α 或重测信度；真正的信度估计需要玩家样本。</p>
     <br>
-    <p><strong>3. 基线噪声（Baseline Noise）</strong></p>
-    <p>随机选择（全部随机）在一局游戏中每个维度的期望得分约 0（正负抵消），但标准差约 8-12。这意味着即使随机选择，约有 15% 的概率会在某个维度上"显著"偏向一侧。这就是为什么单局结果不可信——需要 ≥ 3 局才能稳定。</p>
+    <p><strong>3. 路径依赖与机会基线</strong></p>
+    <p>不同路线会让玩家面对不同选项，因此主游戏使用“本局机会基线”而不是直接累计原始分。离线的 <code>npm run audit</code> 会继续检查随机基线噪声与维度偏侧。</p>
     <br>
     <p><strong>4. Double-Barreled Item 问题</strong></p>
-    <p>当前 52% 的选项同时影响 2+ 维度（如 "EI:2, JP:-1"）。这意味着玩家选一个选项等于同时回答了「能量来源」和「生活态度」两个问题——心理学称这种题为 double-barreled，应该避免。48% 单维度选项是改进成果。</p>
+    <p>当前 ${shape.multi} / ${shape.total}（${Math.round(shape.multi / shape.total * 100)}%）选项同时影响两个或更多维度。这提高了叙事自然度，但降低了单一构念的可解释性。</p>
     <br>
-    <p><strong>5. SJT (情境判断测验) 天花板</strong></p>
-    <p>叙事嵌入型 SJT 的信效度天然低于标准化量表，学界天花板约为 r ≈ 0.43。本测评作为"游戏内人格匹配"而非诊断工具，这个上限是可接受的。</p>
+    <p><strong>5. 使用边界</strong></p>
+    <p>本页面展示的是设计诊断与结构统计，不是常模、百分位或心理诊断报告。任何“人物契合度”也应理解为叙事匹配，而不是人格测量结论。</p>
   `;
 }
 
@@ -447,10 +473,16 @@ function renderYourData() {
     const s = JSON.parse(raw);
     const sceneInfo = scenes[s.sceneId];
     const mbtiVal = s.mbtiRaw || {};
-    let type = '';
+    const mbtiStats = {};
     MBTI_DIMS.forEach(d => {
-      type += (mbtiVal[d.key] || 0) >= 0 ? d.left : d.right;
+      mbtiStats[d.key] = {
+        mean: s.mbtiBase?.[d.key] || 0,
+        max: s.mbtiHi?.[d.key] || 0,
+        min: s.mbtiLo?.[d.key] || 0,
+        n: s.mbtiItems?.[d.key] || 0,
+      };
     });
+    const type = computeMBTI(mbtiVal, mbtiStats).type;
 
     el.innerHTML = `
       <table class="data-table">
@@ -459,7 +491,7 @@ function renderYourData() {
         <tr><td>MBTI 类型</td><td>${type} · ${MBTI_TYPES[type]?.name || '未知'}</td></tr>
         <tr><td>关键抉择</td><td>${s.choicesMade || 0}</td></tr>
         <tr><td>线索收集</td><td>${(s.clues || []).length}</td></tr>
-        <tr><td>同路人</td><td>${s.trust ? Object.values(s.trust).filter(v => v >= 70).length : 0}</td></tr>
+        <tr><td>同路人</td><td>${s.trust ? Object.entries(s.trust).filter(([id, v]) => id !== 'zhangxiaojing' && v >= ALLY_TRUST).length : 0}</td></tr>
         <tr><td>已过时辰</td><td>${(s.hoursPassed || []).length} / 12</td></tr>
       </table>
     `;
@@ -505,6 +537,7 @@ document.querySelectorAll('.tab-bar button').forEach(btn => {
 });
 
 // ── Init ──
+renderDimSummary();
 renderDimensionChart();
 renderDimTable();
 renderCrossChart();
