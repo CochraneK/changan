@@ -143,13 +143,13 @@ header .back a {
 import { characters, hours } from '../src/data/characters.js';
 import { MBTI_TYPES } from '../src/data/mbti.js';
 
-// MBTI type assignments (matching results.html logic)
-const mbtiMap = {
-  zhangxiaojing: 'ESTP', libi: 'INTJ', cuiqi: 'ESTJ', tanqi: 'ISFJ',
-  wenran: 'ISFP', yaoruneng: 'INTP', longbo: 'ENTP', heyizheng: 'INFJ',
-  yuanzai: 'ENTJ', linjiulang: 'ENTJ', xuhezi: 'ISTJ', yuzhen: 'ISTP',
-  dingtonger: 'ENFP', wangyunxiu: 'ESFJ', gela: 'ENTP',
-};
+// Character → MBTI must come from the same canonical mapping used by results.html.
+// Never hand-maintain a second table: that previously shifted many characters to the wrong type.
+const mbtiMap = Object.fromEntries(
+  Object.entries(MBTI_TYPES)
+    .filter(([, info]) => info?.who)
+    .map(([type, info]) => [info.who, type])
+);
 
 function render(filter = 'all') {
   const grid = document.getElementById('cardGrid');
