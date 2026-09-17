@@ -1,38 +1,50 @@
-// 核对 README 里引用的 verify 输出与实际运行结果是否一致。
-// README 里的输出块是手工贴的，很容易在改完数据后忘记同步 —— 这个脚本就是防止它腐化。
+// README 当前态校验：从 scenes.js 推导真实项目元数据，避免文档中的数字随版本腐化。
 import fs from 'node:fs';
-import { execSync } from 'node:child_process';
+import { scenes, isPassage } from '../src/data/scenes.js';
 
-// ⚠️ 必须先归一化换行符。下面那几个正则写的是 `\n`，只认 LF；
-//    而 README 一旦被 Windows 上的编辑器/脚本改存成 CRLF（\r\n），
-//    就会出现「verify 输出块明明在文件里，脚本却说找不到」——
-//    2026-09-11 真实踩到一次（用 Python 文本模式写 README，整文件被转成 CRLF）。
-//    归一化在这里做一次，比去改每个正则可靠。
 const md = fs.readFileSync('README.md', 'utf8').replace(/\r\n/g, '\n');
-const actual = execSync('node tools/verify.mjs', { encoding: 'utf8' });
+const list = Object.values(scenes);
+const meta = {
+  nodes: list.length,
+  passages: list.filter(sc => isPassage(sc)).length,
+  choicePoints: list.filter(sc => !sc.ending && !isPassage(sc) && Array.isArray(sc.choices) && sc.choices.length).length,
+  choices: list.reduce((n, sc) => n + (sc.choices?.length || 0), 0),
+  endings: list.filter(sc => sc.ending).length,
+};
 
-const m = md.match(/### `verify` 覆盖项目\s*\n+```\n([\s\S]*?)```/);
-if (!m) {
-  console.log('❌ README 里找不到 verify 输出块');
-  process.exit(1);
+const checks = [];
+function check(label, ok, detail = '') {
+  checks.push({ label, ok, detail });
 }
 
-const lines = m[1].split('\n').filter(l => l.trim());
+const landing = md.match(/条件门控分支 · (\d+) 个结局 · 人格画像/);
+check(
+  'README 顶部结局数',
+  !!landing && Number(landing[1]) === meta.endings,
+  `README=${landing?.[1] ?? 'missing'} / scenes=${meta.endings}`
+);
 
-// 只比较"内容"，不比较对齐用的连续空格 —— README 会把几行并排写以省版面，
-// 实际输出则是每行一条。这里把连续空白压成单个空格再比。
-const norm = (s) => s.replace(/\s+/g, ' ').trim();
-const hay = norm(actual);
+const gameplay = md.match(/共 (\d+) 个剧情节点 \/ (\d+) 个抉择/);
+check(
+  'README 玩法抉择统计',
+  !!gameplay && Number(gameplay[1]) === meta.choicePoints && Number(gameplay[2]) === meta.choices,
+  `README=${gameplay ? gameplay[1] + '/' + gameplay[2] : 'missing'} / scenes=${meta.choicePoints}/${meta.choices}`
+);
 
-let ok = 0, bad = 0;
-for (const line of lines) {
-  // README 允许把两行并排写在一行里，用 2 个以上空格分隔
-  const parts = line.split(/\s{2,}/).map(s => s.trim()).filter(Boolean);
-  for (const p of parts) {
-    const hit = hay.includes(norm(p));
-    console.log((hit ? '  ✅ ' : '  ❌ ') + p);
-    hit ? ok++ : bad++;
-  }
+const endingTags = list.filter(sc => sc.ending).map(sc => sc.endTag).filter(Boolean);
+for (const tag of endingTags) {
+  const name = String(tag).replace(/^结局\s*·\s*/, '').trim();
+  check(`结局表包含「${name}」`, md.includes(`**${name}**`));
 }
-console.log(`\nREADME 引用输出核对：${ok} 项一致` + (bad ? `，${bad} 项不一致 ❌` : '，全部一致 ✅'));
+
+check('README 不保留易腐化的固定结局百分比', !md.includes('49.7% / 未竟之局 24.1%'));
+check('README verify 段声明实时统计', md.includes('数量以当前 verify 输出为准'));
+
+let bad = 0;
+for (const c of checks) {
+  console.log((c.ok ? '  ✅ ' : '  ❌ ') + c.label + (c.detail ? ` — ${c.detail}` : ''));
+  if (!c.ok) bad++;
+}
+console.log(`\nREADME 当前态核对：${checks.length - bad}/${checks.length} 通过`);
+console.log(`实时元数据：${meta.nodes} 节点 / ${meta.passages} 过场 / ${meta.choicePoints} 抉择点 / ${meta.choices} 选项 / ${meta.endings} 结局`);
 if (bad) process.exit(1);
