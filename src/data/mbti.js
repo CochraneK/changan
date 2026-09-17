@@ -316,25 +316,32 @@ export function matchMBTICharacter(dims, type) {
   const player = {};
   dims.forEach(d => { player[d.key] = d.leftPct - 50; });
 
-  const main = (MBTI_TYPES[type] && MBTI_TYPES[type].who) || null;
+  const typeReference = (MBTI_TYPES[type] && MBTI_TYPES[type].who) || null;
   const cv = (v) => keys.map(k => ((v[k] || 0) / 3) * 50);
 
-  // 统一算法：对每一位书中人物，都用"你的四维强度与其向量的平均绝对偏差"算契合度。
-  // 主匹配固定取你类型对应的那位；次席取**排除主匹配后、同一把尺下**契合度最高的一位。
-  // 这样主/次席是同一个度量，可以同榜排名，不再出现"主 81%、次 84%"这种不可比较的百分比。
-  let best = null, bestSim = -1, second = null, secondSim = -1;
-  for (const id in CHARACTER_MBTI) {
-    if (!CHARACTER_MBTI[id]) continue;
-    const c = cv(CHARACTER_MBTI[id]);
-    const dev = keys.reduce((s, k, i) => s + Math.abs(player[k] - c[i]), 0) / keys.length;
-    const sim = Math.max(0, Math.min(100, Math.round(100 - dev)));
-    if (id === main) { best = id; bestSim = sim; continue; }
-    if (sim > secondSim) { secondSim = sim; second = id; }
-  }
+  // 排名必须真正按同一把尺排序。旧实现虽然统一了“契合度”公式，
+  // 却仍强制把 MBTI 同型人物放第一，因此会出现“第一名 67%，次席 86%”。
+  // 现在所有人物都按平均绝对偏差换算出的 similarity 降序排列；
+  // typeReference 只保留为“该 MBTI 类型的角色参照”，不参与强制排名。
+  const ranked = Object.entries(CHARACTER_MBTI)
+    .filter(([, v]) => !!v)
+    .map(([id, v]) => {
+      const c = cv(v);
+      const dev = keys.reduce((s, k, i) => s + Math.abs(player[k] - c[i]), 0) / keys.length;
+      const similarity = Math.max(0, Math.min(100, Math.round(100 - dev)));
+      return { id, similarity };
+    })
+    .sort((a, b) => b.similarity - a.similarity || a.id.localeCompare(b.id));
+
+  const best = ranked[0] || { id: typeReference, similarity: 0 };
+  const second = ranked[1] || { id: null, similarity: 0 };
 
   return {
-    id: best, similarity: bestSim < 0 ? 0 : bestSim,
-    second, secondSimilarity: secondSim < 0 ? 0 : secondSim,
+    id: best.id,
+    similarity: best.similarity,
+    second: second.id,
+    secondSimilarity: second.similarity,
+    typeReference,
   };
 }
 
