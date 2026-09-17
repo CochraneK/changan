@@ -15,6 +15,7 @@ import { scenes, START_SCENE, PROTAGONIST, ALLY_TRUST, isPassage } from '../src/
 import { characters } from '../src/data/characters.js';
 import { TRAITS, CHOICE_TRAITS, nodeMax } from '../src/data/traits.js';
 import { MBTI_DIMS, MBTI_CHOICE, computeMBTI, mbtiNodeStats } from '../src/data/mbti.js';
+import { PUZZLE_PIPELINES, checkNewUnlocks } from '../src/data/puzzles.js';
 
 const DIM_KEYS = MBTI_DIMS.map(d => d.key);
 
@@ -108,6 +109,10 @@ function step(st, index) {
     for (const id in ch.trust) st.trust[id] = (st.trust[id] ?? 0) + ch.trust[id];
   }
 
+  // 与 main.js 一致：线索达到管线阈值时自动写入推理突破 flag。
+  const newUnlocks = checkNewUnlocks(st.clues, st.flags);
+  for (const p of newUnlocks) st.flags.add(p.reward.flag);
+
   st.sceneId = resolveTo(st, ch.to);
 }
 
@@ -155,6 +160,36 @@ function byFlagThenTrust(wantFlag, wantFlags, dir) {
   };
 }
 
+function puzzleSolver(st, avail, sc) {
+  const reveal = avail.find(i => sc.choices[i].flag === 'final_reveal');
+  if (reveal !== undefined) return reveal;
+
+  const current = computeMatchedKeywords(st.clues);
+  let best = avail[0], bestScore = -Infinity;
+  for (const i of avail) {
+    const clue = sc.choices[i].clue || '';
+    let score = 0;
+    for (const p of PUZZLE_PIPELINES) {
+      for (const kw of p.keywords) {
+        if (!current.has(p.id + '::' + kw) && clue.toLowerCase().includes(kw.toLowerCase())) score += 3;
+      }
+    }
+    if (sc.choices[i].flag === 'chase_court') score += 1;
+    if (score > bestScore) { bestScore = score; best = i; }
+  }
+  return best;
+}
+
+function computeMatchedKeywords(clues) {
+  const out = new Set();
+  for (const p of PUZZLE_PIPELINES) {
+    for (const kw of p.keywords) {
+      if (clues.some(c => c.toLowerCase().includes(kw.toLowerCase()))) out.add(p.id + '::' + kw);
+    }
+  }
+  return out;
+}
+
 const strategies = {
   '随机乱选': (st, avail) => avail[Math.floor(Math.random() * avail.length)],
   '总选第一项': (st, avail) => avail[0],
@@ -163,6 +198,7 @@ const strategies = {
   '广结人脉': byFlagThenTrust('final_people', null, +1),
   '独行到底': byFlagThenTrust('final_fight', null, -1),
   '追查朝堂': byFlagThenTrust('final_persuade', ['chase_court'], +1),
+  '推理破局': puzzleSolver,
 };
 
 // ===== 随机 3000 局：结局分布 + MBTI 分布 =====
