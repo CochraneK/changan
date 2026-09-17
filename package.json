@@ -20,7 +20,7 @@
     "dump": "python tools/dump_play.py",
     "dump:endings": "python tools/dump_play.py endings",
     "test": "node tools/verify.mjs && node tools/simulate.mjs",
-    "test:all": "node tools/verify.mjs && node tools/check_readme.mjs && node tools/simulate.mjs && node tools/branch_audit.mjs && node tools/passage_audit.mjs && node tools/continuity_audit.mjs && node tools/psy_audit.mjs",
+    "test:all": "node tools/verify.mjs && node tools/check_readme.mjs && node tools/ux_regression.mjs && node tools/simulate.mjs && node tools/branch_audit.mjs && node tools/passage_audit.mjs && node tools/continuity_audit.mjs && node tools/psy_audit.mjs",
     "smoke": "python tools/smoke.py",
     "smoke:psy": "python tools/smoke_psy.py",
     "smoke:mbti": "python tools/smoke_mbti.py",
