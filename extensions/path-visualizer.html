@@ -105,10 +105,6 @@ header .back a {
       <label>高亮路径</label>
       <select id="pathSelect">
         <option value="">全部（全景）</option>
-        <option value="e_hero">大英雄 · 以身许国</option>
-        <option value="e_people">大英雄 · 众望所归</option>
-        <option value="e_alone">独行人 · 死而无憾</option>
-        <option value="e_darkness">暗夜 · 玉石俱焚</option>
       </select>
     </div>
     <div class="legend">
@@ -186,16 +182,16 @@ function getLevelY(level) {
 const nodePos = {};
 
 function layoutNodes() {
+  const CANVAS_W = 1200;
   for (let l = 0; l <= maxLevel; l++) {
     const nodes = levelNodes[l] || [];
-    const totalH = nodes.length * NODE_H + (nodes.length - 1) * SIB_GAP;
-    const startY = getLevelY(l) - totalH / 2;
+    const gap = 18;
+    const totalW = nodes.length * NODE_W + Math.max(0, nodes.length - 1) * gap;
+    const startX = Math.max(30, (CANVAS_W - totalW) / 2);
     nodes.forEach((id, i) => {
-      const hour = scenes[id]?.hour;
-      // Sort nodes by hour within level
       nodePos[id] = {
-        y: startY + i * (NODE_H + SIB_GAP),
-        x: 60 + l * (NODE_W + 30),
+        x: startX + i * (NODE_W + gap),
+        y: getLevelY(l),
       };
     });
   }
@@ -228,7 +224,8 @@ const tooltip = document.getElementById('tooltip');
 const NS = 'http://www.w3.org/2000/svg';
 
 function render(highlightEnding) {
-  const W = 1200, H = 2000;
+  const W = 1200;
+  const H = Math.max(900, LEVEL_Y_PAD * 2 + (maxLevel + 1) * (NODE_H + LEVEL_GAP));
   svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
 
   let html = `<defs>
@@ -265,8 +262,8 @@ function render(highlightEnding) {
       if (edgeSet.has(edgeKey)) return;
       edgeSet.add(edgeKey);
       const isHighlight = highlightEnding && hasPathTo(id, highlightEnding);
-      html += `<line x1="${p.x + NODE_W}" y1="${p.y + NODE_H / 2}"
-        x2="${child.x}" y2="${child.y + NODE_H / 2}"
+      html += `<line x1="${p.x + NODE_W / 2}" y1="${p.y + NODE_H}"
+        x2="${child.x + NODE_W / 2}" y2="${child.y}"
         stroke="${isHighlight ? '#e0b657' : '#4a3a28'}"
         stroke-width="${isHighlight ? 2 : 1}"
         stroke-opacity="${isHighlight ? 1 : 0.4}"
@@ -344,7 +341,7 @@ function hasPathTo(fromId, targetId) {
 }
 
 function renderStats() {
-  const totalNodes = Object.keys(scenes).filter(id => scenes[id] && !scenes[id].ending === undefined || !scenes[id]?.ending).length;
+  const totalNodes = Object.keys(scenes).length;
   const endings = Object.keys(scenes).filter(id => scenes[id]?.ending).length;
   const choices = Object.entries(scenes).filter(([, sc]) => sc.choices).length;
   const passages = Object.entries(scenes).filter(([, sc]) => isPassage(sc)).length;
@@ -386,8 +383,19 @@ svg.addEventListener('mousemove', (e) => {
 
 svg.addEventListener('mouseleave', () => tooltip.classList.remove('show'));
 
+// Ending selector is derived from scenes so new endings cannot silently disappear.
+const pathSelect = document.getElementById('pathSelect');
+Object.entries(scenes)
+  .filter(([, sc]) => sc.ending)
+  .forEach(([id, sc]) => {
+    const option = document.createElement('option');
+    option.value = id;
+    option.textContent = (sc.endTag || id).replace(/^结局\s*·\s*/, '');
+    pathSelect.appendChild(option);
+  });
+
 // Filter control
-document.getElementById('pathSelect').addEventListener('change', (e) => {
+pathSelect.addEventListener('change', (e) => {
   render(e.target.value);
 });
 
