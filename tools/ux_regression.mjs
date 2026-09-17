@@ -1,5 +1,8 @@
 // 玩家级回归：覆盖自动结构审计曾漏掉的真实体验问题。
 import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
+import { spawnSync } from 'node:child_process';
 import { scenes } from '../src/data/scenes.js';
 import {
   MBTI_DIMS,
@@ -62,5 +65,40 @@ assert(countText(hub, '<h3>AI NPC 对话</h3>') === 1, 'Hub 的 AI NPC 对话存
 assert(countText(hub, '<h3>唐代知识卡 · 教育科普</h3>') === 0, 'Hub 仍把已上线唐代知识卡列为未上线项目');
 assert(hub.includes('type="module"') && hub.includes("from '../src/data/scenes.js'"),
   'Hub 统计仍未接入 scenes.js 实时数据');
+
+// 4) Extension pages must share canonical data instead of hand-maintained copies.
+const cards = fs.readFileSync('extensions/character-cards.html', 'utf8');
+const pathPage = fs.readFileSync('extensions/path-visualizer.html', 'utf8');
+const stats = fs.readFileSync('extensions/stats-dashboard.html', 'utf8');
+
+assert(cards.includes('Object.entries(MBTI_TYPES)') && !cards.includes("zhangxiaojing: 'ESTP'"),
+  '人物卡仍维护独立 MBTI 映射表');
+assert(!pathPage.includes('value="e_hero"') && pathPage.includes('filter(([, sc]) => sc.ending)'),
+  '路径页仍使用陈旧的硬编码结局 ID');
+assert(pathPage.includes('const totalNodes = Object.keys(scenes).length'),
+  '路径页“总节点”仍未统计全部 scenes');
+assert(!stats.includes('30/63') && !stats.includes('当前 63 选项') && !stats.includes('当前 52%'),
+  '数据仪表盘仍残留旧版 63 选项统计');
+assert(stats.includes('choiceShapeStats()') && stats.includes('computeMBTI(mbtiVal, mbtiStats)'),
+  '数据仪表盘仍未从当前权重/机会基线计算');
+
+// Parse every inline module script so a broken dashboard/path page cannot ship silently.
+for (const file of [
+  'extensions/character-cards.html',
+  'extensions/path-visualizer.html',
+  'extensions/stats-dashboard.html',
+  'extensions/hub.html',
+]) {
+  const html = fs.readFileSync(file, 'utf8');
+  const scripts = [...html.matchAll(/<script\s+type="module"[^>]*>([\s\S]*?)<\/script>/g)].map(m => m[1]);
+  assert(scripts.length > 0, `${file} 没有可检查的 module script`);
+  scripts.forEach((code, i) => {
+    const tmp = path.join(os.tmpdir(), `changan-ux-${process.pid}-${i}.mjs`);
+    fs.writeFileSync(tmp, code);
+    const parsed = spawnSync(process.execPath, ['--check', tmp], { encoding: 'utf8' });
+    fs.rmSync(tmp, { force: true });
+    assert(parsed.status === 0, `${file} module script 语法错误：${parsed.stderr}`);
+  });
+}
 
 console.log(`✅ UX 回归通过：人物排名 ${rankCases} 组 · 推理管线 ${PUZZLE_PIPELINES.length} 条 · ${endings} 个结局展示一致`);
